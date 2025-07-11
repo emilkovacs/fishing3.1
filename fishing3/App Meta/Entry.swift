@@ -11,7 +11,7 @@ import SwiftUI
 struct fishing3App: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Text("A")
         }
     }
 }
