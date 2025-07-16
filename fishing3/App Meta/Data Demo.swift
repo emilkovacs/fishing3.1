@@ -110,7 +110,10 @@ struct DataDemo: View {
             newEntry.waterTemperature = DemoData.waterTemperatures.randomElement() ?? nil
             newEntry.waterVisibility = DemoData.waterVisibilities.randomElement() ?? nil
             newEntry.catchDepth = DemoData.catchDepts.randomElement() ?? nil
+            newEntry.castingMethod = DemoData.methods.randomElement() ?? .unknown
             newEntry.notes = DemoData.notes.randomElement() ?? "Error"
+            
+            newEntry.weather = DemoData.weathers.randomElement() ?? nil
             
             localContext.insert(newEntry)
             
@@ -460,6 +463,9 @@ struct DemoData {
         86.2, 123.5, 92.7, 28.6, 107.9, 70.9, 113.1, 148.9, 123.8, 21.4
     ]
     
+    static let methods: [CastingMethod] = [
+        .unknown,.unknown,.fly,.boat,.shore,.shore,.trolling,.boat,.shore
+    ]
     static let waterTemperatures: [Double?] = [
         17,23,14,19,24,27,16,28,nil,nil,nil,nil,nil,nil,nil,nil
     ]
@@ -501,6 +507,86 @@ struct DemoData {
         "Bait was almost too big!",
         "Got lucky—hooked just on the edge."
     ]
+    
+    static let weathers: [EntryWeather?] = [
+        nil,
+        EntryWeather(
+            id: UUID(),
+            temp_current: 16.2,
+            temp_feels: 15.0,
+            temp_low: 13.5,
+            temp_high: 17.8,
+            humidity: 88.0,
+            pressure: 1003.1,
+            pressureTrend: .falling,
+            condition: "Rain",
+            condition_symbol: "cloud.rain.fill",
+            cloudCover: 100.0,
+            uvIndex: 1,
+            isDaylight: true,
+            sunset: Date().addingTimeInterval(3600 * 3),
+            sunrise: Date().addingTimeInterval(-3600 * 6),
+            dawn: Date().addingTimeInterval(-3600 * 7),
+            dusk: Date().addingTimeInterval(3600 * 4),
+            visibility: 6.0,
+            wind_speed: 18.0,
+            wind_gusts: 30.0,
+            precipitation_amount: 5.4,  // mm
+            precipitation_chance: 90.0,
+            moon: .firstQuarter
+        ),
+        EntryWeather(
+            id: UUID(),
+            temp_current: 27.4,
+            temp_feels: 29.0,
+            temp_low: 21.0,
+            temp_high: 30.0,
+            humidity: 62.0,
+            pressure: 1012.3,
+            pressureTrend: .steady,
+            condition: "Partly Cloudy",
+            condition_symbol: "cloud.sun",
+            cloudCover: 45.0,
+            uvIndex: 6,
+            isDaylight: true,
+            sunset: Date().addingTimeInterval(3600 * 5),
+            sunrise: Date().addingTimeInterval(-3600 * 8),
+            dawn: Date().addingTimeInterval(-3600 * 9),
+            dusk: Date().addingTimeInterval(3600 * 6),
+            visibility: 10.0,
+            wind_speed: 14.0,
+            wind_gusts: 20.0,
+            precipitation_amount: 0.0,
+            precipitation_chance: 10.0,
+            moon: .waxingGibbous
+        ),
+        EntryWeather(
+            id: UUID(),
+            temp_current: 5.6,
+            temp_feels: 3.0,
+            temp_low: 2.0,
+            temp_high: 8.5,
+            humidity: 97.0,
+            pressure: 1007.2,
+            pressureTrend: .falling,
+            condition: "Fog",
+            condition_symbol: "cloud.fog",
+            cloudCover: 100.0,
+            uvIndex: 0,
+            isDaylight: false,
+            sunset: Date().addingTimeInterval(-3600 * 16),
+            sunrise: Date().addingTimeInterval(600), // in 10 minutes
+            dawn: Date().addingTimeInterval(-300),   // just ended
+            dusk: Date().addingTimeInterval(3600 * 10),
+            visibility: 0.3, // very low
+            wind_speed: 3.0,
+            wind_gusts: 5.0,
+            precipitation_amount: 0.0,
+            precipitation_chance: 5.0,
+            moon: .waningCrescent
+        )
+    ]
+    
     //Helpers
     let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()

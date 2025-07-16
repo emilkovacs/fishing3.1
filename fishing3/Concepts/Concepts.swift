@@ -693,6 +693,7 @@ struct PaywallDemo: View {
     }
 }
 
+/*
 #Preview("Paywall", body: {
     PaywallDemo()
 })
@@ -706,8 +707,9 @@ struct PaywallDemo: View {
     ViewCatchDemo()
        
 }
-
+*/
 
 #Preview {
-    Concepts()
+    //Concepts()
+    ViewCatchDemo()
 }

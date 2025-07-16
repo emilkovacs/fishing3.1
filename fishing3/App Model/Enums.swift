@@ -197,7 +197,16 @@ enum CastingMethod: String, Selectable {
         case .unknown: return "questionmark"
         }
     }
-        
+       
+    var viewLabel: String {
+        switch self {
+        case .shore: return "from Shore"
+        case .boat: return "from Boat"
+        case .fly: return "with Fly"
+        case .trolling: return "with Trolling"
+        case .unknown: return "unknown method"
+        }
+    }
         
     
 }
@@ -286,10 +295,10 @@ enum EntryPressureTrend: String,CaseIterable, Codable {
     }
     var symbolName: String {
         switch self {
-        case .falling: return "Circle"
-        case .rising: return "Circle"
-        case .steady: return "Circle"
-        case .error: return "Circle"
+        case .falling: return "arrow.down.right"
+        case .rising: return "arrow.up.right"
+        case .steady: return "arrow.right"
+        case .error: return "questionmark"
         }
     }
 }

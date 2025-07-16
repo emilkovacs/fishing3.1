@@ -9,18 +9,24 @@ import Foundation
 import SwiftUI
 
 
+
 struct AppColor {
     static let primary: Color = Color("app_primary")
     static let half: Color = Color("app_half")
     static let secondary: Color = Color("app_secondary")
     static let tone: Color = Color("app_tone")
     static let dark: Color = Color("app_dark")
+    static let button: Color = Color("app_button")
 }
 
 struct AppSize {
     static let size: CGFloat = 38.0
     static let radius: CGFloat = 18.0
     static let spacing: CGFloat = 8.0
+    
+    static let buttonSpacing: CGFloat = 6.0
+    static let buttonPadding: CGFloat = 16.0
+    static let buttonSize: CGFloat = 38.0
 }
 
 struct AppHaptics {
@@ -31,6 +37,20 @@ struct AppHaptics {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
     }
 }
+
+struct AppUnits {
+    static let usesMetric: Bool = Locale.current.measurementSystem == .metric
+    
+    static let weight: String = usesMetric ? "kg" : "lb"
+    static let length: String = usesMetric ? "cm" : "in"
+    
+}
+    
+
+extension Font {
+    static let callout2: Font = .system(size: 14)
+}
+
 
 class AppSafeArea {
     static let edges = AppSafeArea()

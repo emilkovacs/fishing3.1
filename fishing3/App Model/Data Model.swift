@@ -17,7 +17,7 @@ class Entry {
     var timestamp: Date
     var latitude: Double
     var longitude: Double
-    var weather: Bool?
+    var weather: EntryWeather?
     
     //Manualy set
     @Relationship var species: Species?
@@ -38,7 +38,9 @@ class Entry {
     var tideState: TideState = TideState.unknown
     
 
-    init(id: UUID, timestamp: Date, latitude: Double, longitude: Double, weather: Bool? = nil, species: Species? = nil, bait: Bait? = nil, weight: Double? = nil, length: Double? = nil, notes: String, imageIDs: [String], castingMethod: CastingMethod, catchDepth: Double? = nil, bottomType: BottomType, waterTemperature: Double? = nil, waterVisibility: Double? = nil, tideState: TideState) {
+    init(
+        id: UUID, timestamp: Date, latitude: Double, longitude: Double, weather: EntryWeather? = nil, species: Species? = nil, bait: Bait? = nil, weight: Double? = nil, length: Double? = nil, notes: String, imageIDs: [String], castingMethod: CastingMethod, catchDepth: Double? = nil, bottomType: BottomType, waterTemperature: Double? = nil, waterVisibility: Double? = nil, tideState: TideState
+    ) {
         self.id = id
         self.timestamp = timestamp
         self.latitude = latitude

@@ -101,18 +101,22 @@ class EntryWeather {
     var temp_low: Double
     var temp_high: Double
     
+    
     // Pressure & Humidity
     var humidity: Double
     var pressure: Double
     var pressureTrend: EntryPressureTrend
     
+    
     // Light & Sky Conditions
     var condition: String
     var condition_symbol: String
+    
     var cloudCover: Double
-    var uvIndex: Int
+    
     
     //Day
+    var uvIndex: Int
     var isDaylight: Bool
     var sunset: Date
     var sunrise: Date
@@ -132,6 +136,34 @@ class EntryWeather {
     //Moon
     var moon: EntryMoonPhase
     
+    
+    
+    
+    init(id: UUID, temp_current: Double, temp_feels: Double, temp_low: Double, temp_high: Double, humidity: Double, pressure: Double, pressureTrend: EntryPressureTrend, condition: String, condition_symbol: String, cloudCover: Double, uvIndex: Int, isDaylight: Bool, sunset: Date, sunrise: Date, dawn: Date, dusk: Date, visibility: Double, wind_speed: Double, wind_gusts: Double, precipitation_amount: Double, precipitation_chance: Double, moon: EntryMoonPhase) {
+        self.id = id
+        self.temp_current = temp_current
+        self.temp_feels = temp_feels
+        self.temp_low = temp_low
+        self.temp_high = temp_high
+        self.humidity = humidity
+        self.pressure = pressure
+        self.pressureTrend = pressureTrend
+        self.condition = condition
+        self.condition_symbol = condition_symbol
+        self.cloudCover = cloudCover
+        self.uvIndex = uvIndex
+        self.isDaylight = isDaylight
+        self.sunset = sunset
+        self.sunrise = sunrise
+        self.dawn = dawn
+        self.dusk = dusk
+        self.visibility = visibility
+        self.wind_speed = wind_speed
+        self.wind_gusts = wind_gusts
+        self.precipitation_amount = precipitation_amount
+        self.precipitation_chance = precipitation_chance
+        self.moon = moon
+    }
     
     init(weather: Weather){
         
@@ -166,32 +198,6 @@ class EntryWeather {
         self.precipitation_amount = current.precipitationIntensity.value
         self.precipitation_chance = forecast?.precipitationChance ?? 0
         self.moon = EntryMoonPhase(rawValue:  forecast?.moon.phase.description ?? "error") ?? .error
-    }
-    
-    init(id: UUID, temp_current: Double, temp_feels: Double, temp_low: Double, temp_high: Double, humidity: Double, pressure: Double, pressureTrend: EntryPressureTrend, condition: String, condition_symbol: String, cloudCover: Double, uvIndex: Int, isDaylight: Bool, sunset: Date, sunrise: Date, dawn: Date, dusk: Date, visibility: Double, wind_speed: Double, wind_gusts: Double, precipitation_amount: Double, precipitation_chance: Double, moon: EntryMoonPhase) {
-        self.id = id
-        self.temp_current = temp_current
-        self.temp_feels = temp_feels
-        self.temp_low = temp_low
-        self.temp_high = temp_high
-        self.humidity = humidity
-        self.pressure = pressure
-        self.pressureTrend = pressureTrend
-        self.condition = condition
-        self.condition_symbol = condition_symbol
-        self.cloudCover = cloudCover
-        self.uvIndex = uvIndex
-        self.isDaylight = isDaylight
-        self.sunset = sunset
-        self.sunrise = sunrise
-        self.dawn = dawn
-        self.dusk = dusk
-        self.visibility = visibility
-        self.wind_speed = wind_speed
-        self.wind_gusts = wind_gusts
-        self.precipitation_amount = precipitation_amount
-        self.precipitation_chance = precipitation_chance
-        self.moon = moon
     }
     
 }
