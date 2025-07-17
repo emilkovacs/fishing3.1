@@ -118,8 +118,10 @@ class EntryWeather {
     //Day
     var uvIndex: Int
     var isDaylight: Bool
+    
     var sunset: Date
     var sunrise: Date
+    
     var dawn: Date
     var dusk: Date
     
@@ -169,6 +171,8 @@ class EntryWeather {
         
         let current = weather.currentWeather
         let forecast = weather.dailyForecast.first
+        
+
         
         self.id = UUID()
         

@@ -15,11 +15,14 @@ import MapKit
 /// Maybe some simple charts, comparisons, percentiles?
 
 
-//Apple Maps and Weather acknowledgement need to be fixed.
+//Apple Maps and Weather attribution needs to be fixed.
 
 // Implement the photo overlay part, decide on design, options as now:
 /// --> Overlay which opens to a photo viewer, like in the old add catch.
 /// Overlay which expands and replaces the map.
+
+// Add new marker to map
+// Map Satelite switch
 
 ///`Finish this fucking part before starting an another.`
 
@@ -29,25 +32,37 @@ import MapKit
 /// Details
 
 
+
 struct ViewEntry: View {
     
-    let entry: Entry
+    @Environment(\.colorScheme) var colorScheme
     
-    @AppStorage("catchDetails") var catchDetails: Bool = true
+    let entry: Entry
     
     var body: some View {
         ZStack{
             ScrollView{
                 ViewEntryMap(lat: entry.latitude, lon: entry.longitude)
-                
                 VStack(alignment: .leading){
                     ViewEntryHeader(entry: entry)
                     ViewEntryDrops(entry: entry)
                 }
                 .padding()
-                .background(AppColor.tone)
-                .padding(.top,-64)
-                
+                .background(
+                    VStack(spacing: 0, content: {
+                        LinearGradient(
+                            colors: [
+                                AppColor.tone,
+                                AppColor.tone.opacity(0.75),
+                                AppColor.tone.opacity(0.0)
+                            ],
+                            startPoint: .bottom, endPoint: .top)
+                            .frame(height: 50)
+                        AppColor.tone
+                    })
+                   
+                )
+                .padding(.top,-84)
             }
             .scrollIndicators(.hidden)
             
@@ -57,6 +72,7 @@ struct ViewEntry: View {
         .ignoresSafeArea(.container)
     }
 }
+
 
 
 //Large Components
@@ -83,13 +99,17 @@ struct ViewEntryMap: View {
     let entryRegion: MKCoordinateRegion
     
     @Environment(\.colorScheme) var scheme
+    
     @State private var isSatelite: Bool = false
+    var mapStyle: MapStyle {
+        isSatelite ? MapStyle.hybrid(elevation: .realistic, pointsOfInterest: .excludingAll, showsTraffic: false) : MapStyle.standard(elevation: .realistic, emphasis: .automatic, pointsOfInterest: .excludingAll, showsTraffic: false)
+    }
     
     private let mapHeight: CGFloat = 480
     
     init(lat: Double, lon: Double) {
         let coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-        let delta = 0.012
+        let delta = 0.006
         let region: MKCoordinateRegion = MKCoordinateRegion(center: coordinate, span: .init(latitudeDelta: delta, longitudeDelta: delta))
         self.entryCoordinate = coordinate
         self.entryRegion = region
@@ -104,11 +124,17 @@ struct ViewEntryMap: View {
                 ZStack(alignment: .center){
                     Map(initialPosition: .region(entryRegion)){
                         Marker(coordinate: entryCoordinate) {
-                            Text("adfgf")
+                            Text("Catch")
                         }
                     }
+                    .mapStyle(mapStyle)
                     .grayscale(1.0)
+                    .safeAreaPadding(.vertical,190)
+                    .safeAreaPadding(.horizontal,6)
                     .frame(height: mapHeight * 1.5)
+                    .onLongPressGesture {
+                        isSatelite.toggle()
+                    }
                     
                     MapColorCorrections(isSatelite: isSatelite)
                     MapColorFade()
@@ -118,11 +144,9 @@ struct ViewEntryMap: View {
                 .offset(y: -clampedY)
             }
             
-            MapColorFade()
-                .padding(.bottom,64-8)
+                
         }
         .frame(height: mapHeight)
-        
     }
     
 
@@ -150,13 +174,19 @@ struct ViewEntryHeader: View {
     var body: some View {
         VStack(alignment: .leading,spacing: 12) {
             HStack{
-                Image(systemName: "calendar")
+                
+                HStack{
+                    Image(systemName: "calendar")
+                    Text(DateFormatter.dayAndTime.string(from: entry.timestamp))
+                }
                     .font(.caption)
-                Text(DateFormatter.dayAndTime.string(from: entry.timestamp))
-                    .font(.callout)
+                    .padding(.vertical,6)
+                    .padding(.horizontal,12)
+                    .background(AppColor.secondary)
+                    .cornerRadius(30)
+                    .padding(.leading,-6)
+                Spacer()
             }
-            .padding(.bottom,6)
-            .foregroundStyle(AppColor.half)
             
             Text(titleLine)
                 .font(.title)
@@ -170,78 +200,110 @@ struct ViewEntryHeader: View {
                 Text(entry.notes)
                     .padding(.vertical,12)
             }
-            
-            Divider().padding(.vertical,12)
-            
         }
         
     }
 }
+
 struct ViewEntryDrops: View {
     let entry: Entry
+    
+    @AppStorage("expandDetails") var expandDetails: Bool = false
+    @AppStorage("expandConditions") var expandConditions: Bool = false
+    @AppStorage("expandSolunar") var expandSolunar: Bool = true
+    @AppStorage("expandStatistics") var expandStatistics: Bool = false
+    
     var body: some View {
-        ViewEntryDrop(symbol: "matter.logo", title: "Catch details") {
-            ViewCatchDetails(entry: entry)
+        Group{
+            Divider().padding(.top,12)
+            ViewEntryDrop(symbol: "matter.logo", title: "Catch details",isExpanded: $expandDetails) {
+                ViewCatchDetails(entry: entry)
+            }
+            ViewEntryDrop(symbol: "cloud", title: "Conditions",isExpanded: $expandConditions) {
+                ViewEntry_Weather(entryWeather: entry.weather)
+            }
+            
+            ViewEntryDrop(symbol: "sun.horizon.fill", title: "Sulunar",isExpanded: $expandSolunar) {
+                ViewEntry_Solunar(entry: entry)
+            }
+            
+            ViewEntryDrop(symbol: "externaldrive", title: "Statistics",isExpanded: $expandStatistics) {
+                ViewEntry_Metada(entry: entry)
+            }
+            ViewEntry_WeatherAttribution()
         }
-        ViewEntryDrop(symbol: "humidity.fill", title: "Water details") {
-            ViewEntry_WaterDetails(entry: entry)
-        }
-        ViewEntryDrop(symbol: "cloud", title: "Weather details") {
-            ViewEntry_Weather(entryWeather: entry.weather)
-        }
-        ViewEntryDrop(symbol: "cloud", title: "Metada") {
-            ViewEntry_Metada(entry: entry)
-        }
+        .animation(.default, value: expandDetails)
+        .animation(.default, value: expandConditions)
+        .animation(.default, value: expandSolunar)
+        .animation(.default, value: expandStatistics)
     }
 }
-
 
 struct ViewEntryDrop<Content:View>:View {
     
     let symbol: String
     let title: String
+    @Binding var isExpanded: Bool
     let content: () -> Content
-    
-    @State private var isExpanded: Bool = false
-    @Namespace var ns
     
     var body: some View {
         VStack {
-            
-            
-            HStack{
-                Image(systemName: symbol)
-                    .font(.subheadline)
-                    .frame(width: 24,alignment: .center)
-                Text(title)
-                    .matchedGeometryEffect(id: "title", in: ns,properties: .position)
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(AppColor.half)
-                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
-            }
-            
-            
-            .onTapGesture {
-                withAnimation {
-                    isExpanded.toggle()
+            Button {
+                AppHaptics.light()
+                isExpanded.toggle()
+            } label: {
+                HStack{
+                    Image(systemName: symbol)
+                        .font(.subheadline)
+                        .frame(width: 24,alignment: .center)
+                    Text(title)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(AppColor.half)
+                        .rotationEffect(.degrees(isExpanded ? 90 : 0))
                 }
+                .foregroundStyle(AppColor.primary)
+                .padding(.vertical,12)
+                .background(AppColor.tone)
             }
-            
             if isExpanded {
                 content()
                     .transition(.blurReplace)
-                    .padding(.vertical,10)
+                    .padding(.top,4)
+                    .padding(.bottom,12)
                 
             }
-            
-            Divider().padding(.vertical,12)
+            Divider()
         }
     }
 }
+struct ViewEntryLine<Content:View>:View {
+    let symbol: String
+    let title: String
+    
+    let content: () -> Content
+    
+    var body: some View {
+        HStack{
+            if !symbol.isEmpty {
+                Image(systemName: symbol)
+                    .foregroundStyle(AppColor.half)
+                    .font(.callout2)
+                    .frame(width: 18,alignment: .center)
+            }
+            Text(title)
+                .foregroundStyle(AppColor.primary)
+                .font(.callout)
+            Spacer()
+            content()
+                .foregroundStyle(AppColor.half)
+                .font(.callout)
+        }
+    }
+}
+
 
 //Drops Content
 struct ViewCatchDetails: View {
@@ -273,7 +335,6 @@ struct ViewCatchDetails: View {
         
     }
 }
-
 struct ViewEntry_WaterDetails: View {
     let entry: Entry
     var body: some View {
@@ -300,7 +361,6 @@ struct ViewEntry_WaterDetails: View {
         .font(.callout)
     }
 }
-
 struct ViewEntry_Metada: View {
     let entry: Entry
     var body: some View {
@@ -328,7 +388,6 @@ struct ViewEntry_Metada: View {
         .font(.callout)
     }
 }
-
 struct ViewEntry_Weather: View {
     let entryWeather: EntryWeather?
     var body: some View {
@@ -400,19 +459,53 @@ struct ViewEntry_Weather: View {
         }
     }
 }
-//End Drops Content
 
-
-struct EntryDetailRow:View {
-    
+struct ViewEntry_Solunar: View {
+    let entry: Entry
     var body: some View {
-        HStack{
-            
+        ViewEntryLine(symbol: entry.weather?.moon.symbolName ?? "moon.stars.fill", title: "Moon Phase") {
+                Text(entry.weather?.moon.label ?? "asd")
         }
+        
+        ViewEntryLine(symbol: "deskclock.fill", title: "Time of catch") {
+            Text(DateFormatter.dateTime(entry.timestamp))
+        }
+        ViewEntryLine(symbol: "sunrise.fill", title: "Sunrise") {
+            Text(DateFormatter.dateTime(entry.weather?.sunrise ?? Date()))
+        }
+        ViewEntryLine(symbol: "sunset.fill", title: "Sunset") {
+            Text(DateFormatter.dateTime(entry.weather?.sunset ?? Date()))
+        }
+        
     }
 }
 
 
+
+//End Drops Content
+
+
+
+//MARK: - OTHER STUFF
+
+struct ViewEntry_WeatherAttribution: View {
+    
+    private let imageHeight: CGFloat = 12
+    
+    var body: some View {
+        HStack(alignment: .firstTextBaseline){
+            Image("weather_attribution")
+                .resizable()
+                .scaledToFit()
+                .frame(height: imageHeight)
+            Text("Legal")
+                .foregroundStyle(AppColor.half)
+                .underline()
+                .font(.caption2)
+        }
+        .padding(.vertical)
+    }
+}
 
 //Helpers or idk
 extension DateFormatter {
@@ -421,6 +514,12 @@ extension DateFormatter {
         formatter.setLocalizedDateFormatFromTemplate("MMMMd - HH:mm")
         return formatter
     }()
+    
+    static func dateTime(_ date:Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
 }
 
 //Map stuff, move later
@@ -442,12 +541,24 @@ struct MapColorCorrections: View {
     var body: some View {
         if colorScheme == .dark {
             Rectangle()
-                .fill(AppColor.dark.opacity(isSatelite ? 0.2 : 0.55))
+                .fill(AppColor.dark.opacity(isSatelite ? 0.4 : 0.55))
                 .blendMode(.overlay)
                 .allowsHitTesting(false)
         }
     }
 }
+
+struct MapMarker: View {
+    var body: some View {
+        Circle()
+            .fill(AppColor.primary.opacity(0.25))
+            .stroke(Color.white, lineWidth: 3)
+            .frame(width: 22, height: 22, alignment: .center)
+    }
+}
+
+
+//MARK: - PREVIEW
 
 #if DEBUG
 
@@ -457,7 +568,7 @@ private struct ViewEntry_Preview: View {
     @Query var allEntries: [Entry]
     
     var body: some View {
-        ViewEntry(entry: allEntries[9])
+        ViewEntry(entry: allEntries[3])
     }
 }
 

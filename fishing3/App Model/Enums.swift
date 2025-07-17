@@ -333,7 +333,7 @@ enum EntryMoonPhase: String, CaseIterable, Codable {
         case .full: return "moonphase.full.moon"
         case .lastQuarter: return "moonphase.last.quarter"
         case .new: return "moonphase.new.moon"
-        case .waningCrescent: return "moonphase.waningCrescent"
+        case .waningCrescent: return "moonphase.waning.crescent"
         case .waningGibbous: return "moonphase.gibbous"
         case .waxingCrescent: return "moonphase.waxing.crescent"
         case .waxingGibbous: return "moonphase.waxing.gibbous"
