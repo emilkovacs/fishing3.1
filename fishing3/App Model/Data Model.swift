@@ -17,7 +17,8 @@ class Entry {
     var timestamp: Date
     var latitude: Double
     var longitude: Double
-    var weather: EntryWeather?
+    
+    @Relationship(deleteRule: .cascade) var weather: EntryWeather?
     
     //Manualy set
     @Relationship var species: Species?

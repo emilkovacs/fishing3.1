@@ -16,6 +16,7 @@ struct DataDemo: View {
     @Query var allEntries: [Entry]
     @Query var allSpecies: [Species]
     @Query var allBaits: [Bait]
+    @Query var allWeathers: [EntryWeather]
     
     @State private var slider: Double = 100
     
@@ -33,11 +34,15 @@ struct DataDemo: View {
             let baitDescriptor = FetchDescriptor<Bait>(predicate: #Predicate{$0.name != "alma"})
             let baitCount = (try? context.fetchCount(baitDescriptor) ) ?? 1111
             
+            let weatherDescriptor = FetchDescriptor<EntryWeather>(predicate: #Predicate{$0.condition_symbol != "alma"})
+            let weatherCount = (try? context.fetchCount(weatherDescriptor) ) ?? 1111
+            
           
             Text("Entries: \(entryCount)")
             HStack{
                 Text("Species: \(speciesCount)  ")
                 Text("Baits: \(baitCount)")
+                Text("Weathers: \(weatherCount)")
             }
             .padding(.bottom,32)
             .onAppear{
@@ -76,6 +81,7 @@ struct DataDemo: View {
         allEntries.forEach { entry in localContext.delete(entry)}
         allSpecies.forEach { entry in localContext.delete(entry)}
         allBaits.forEach { entry in localContext.delete(entry)}
+        allWeathers.forEach { entry in localContext.delete(entry)}
         print("Context cleared")
         
         do {
