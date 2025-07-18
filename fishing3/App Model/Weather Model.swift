@@ -24,8 +24,9 @@ import WeatherKit
  }
  */
 
+@Observable
 class WeatherManager {
-    
+    static let shared = WeatherManager()
     private let weatherService = WeatherService()
     
     private let maxCacheDuration: TimeInterval = 15 * 60 // 15 minutes
@@ -40,6 +41,8 @@ class WeatherManager {
     
     func getWeather(location: CLLocation) async throws -> EntryWeather {
         let now = Date()
+        
+        print("☁️☁️ \(location)")
         
         if let lastLoc = lastLocation,
            let lastTime = lastFetchedAt,
@@ -113,17 +116,15 @@ class EntryWeather {
     var condition_symbol: String
     
     var cloudCover: Double
-    
-    
-    //Day
     var uvIndex: Int
-    var isDaylight: Bool
     
+    //Solunar
     var sunset: Date
     var sunrise: Date
     
-    var dawn: Date
-    var dusk: Date
+    var moon: EntryMoonPhase
+    var moonrise: Date
+    var moonset: Date
     
     var visibility: Double
     
@@ -135,13 +136,7 @@ class EntryWeather {
     var precipitation_amount: Double
     var precipitation_chance: Double
     
-    //Moon
-    var moon: EntryMoonPhase
-    
-    
-    
-    
-    init(id: UUID, temp_current: Double, temp_feels: Double, temp_low: Double, temp_high: Double, humidity: Double, pressure: Double, pressureTrend: EntryPressureTrend, condition: String, condition_symbol: String, cloudCover: Double, uvIndex: Int, isDaylight: Bool, sunset: Date, sunrise: Date, dawn: Date, dusk: Date, visibility: Double, wind_speed: Double, wind_gusts: Double, precipitation_amount: Double, precipitation_chance: Double, moon: EntryMoonPhase) {
+    init(id: UUID, temp_current: Double, temp_feels: Double, temp_low: Double, temp_high: Double, humidity: Double, pressure: Double, pressureTrend: EntryPressureTrend, condition: String, condition_symbol: String, cloudCover: Double, uvIndex: Int, sunset: Date, sunrise: Date, moon: EntryMoonPhase, moonrise: Date, moonset: Date, visibility: Double, wind_speed: Double, wind_gusts: Double, precipitation_amount: Double, precipitation_chance: Double) {
         self.id = id
         self.temp_current = temp_current
         self.temp_feels = temp_feels
@@ -154,25 +149,22 @@ class EntryWeather {
         self.condition_symbol = condition_symbol
         self.cloudCover = cloudCover
         self.uvIndex = uvIndex
-        self.isDaylight = isDaylight
         self.sunset = sunset
         self.sunrise = sunrise
-        self.dawn = dawn
-        self.dusk = dusk
+        self.moon = moon
+        self.moonrise = moonrise
+        self.moonset = moonset
         self.visibility = visibility
         self.wind_speed = wind_speed
         self.wind_gusts = wind_gusts
         self.precipitation_amount = precipitation_amount
         self.precipitation_chance = precipitation_chance
-        self.moon = moon
     }
     
     init(weather: Weather){
         
         let current = weather.currentWeather
         let forecast = weather.dailyForecast.first
-        
-
         
         self.id = UUID()
         
@@ -189,11 +181,11 @@ class EntryWeather {
         self.condition_symbol = current.symbolName
         self.cloudCover = current.cloudCover
         self.uvIndex = current.uvIndex.value
-        self.isDaylight = current.isDaylight
+        
         self.sunset = forecast?.sun.sunset ?? Date()
         self.sunrise = forecast?.sun.sunrise ?? Date()
-        self.dawn =  forecast?.sun.civilDawn ?? Date()
-        self.dusk = forecast?.sun.civilDusk ?? Date()
+        self.moonrise =  forecast?.moon.moonrise ?? Date()
+        self.moonset = forecast?.moon.moonset ?? Date()
         
         self.visibility = current.visibility.value
         self.wind_speed = current.wind.speed.value
@@ -203,6 +195,7 @@ class EntryWeather {
         self.precipitation_chance = forecast?.precipitationChance ?? 0
         self.moon = EntryMoonPhase(rawValue:  forecast?.moon.phase.description ?? "error") ?? .error
     }
+    
     
 }
 

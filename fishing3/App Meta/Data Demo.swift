@@ -20,7 +20,7 @@ struct DataDemo: View {
     
     @State private var slider: Double = 100
     
-   
+    @State private var demoWeather: EntryWeather?
     
     var body: some View {
         VStack{
@@ -52,21 +52,37 @@ struct DataDemo: View {
             
             Text("Slider value: \(Int(slider))")
 
+            
         
             Slider(value: $slider, in: 0...5000,step: 100)
             
             HStack{
                 Button("Clear", systemImage: "delete.left.fill") {
-                    clearDatabase()
+                     clearDatabase()
                 }
                 .buttonStyle(.bordered)
                 .padding(.trailing)
                 
                 Button("Replace", systemImage: "plus.circle.fill") {
-                    repopulateDatabase()
+                    Task { @MainActor in
+                        await repopulateDatabase()
+                    }
                 }
                 .buttonStyle(.borderedProminent)
             }
+            
+            if let bitch = demoWeather {
+                Text(bitch.moonrise.description)
+            }
+            Text("A")
+
+            if let first = allEntries.first {
+                if let wthr = first.weather {
+                    Text(wthr.temp_low.description)
+                }
+            }
+            
+
             
         }
         .padding(32)
@@ -76,7 +92,7 @@ struct DataDemo: View {
     
     
     
-    func clearDatabase() {
+    func clearDatabase()  {
         let localContext = context
         allEntries.forEach { entry in localContext.delete(entry)}
         allSpecies.forEach { entry in localContext.delete(entry)}
@@ -91,55 +107,51 @@ struct DataDemo: View {
         }
     }
     
-    func repopulateDatabase() {
-        //Delete all old entries
-        let localContext = context
-        
-        DemoData.species.forEach { item in
-            localContext.insert(item)
+    func repopulateDatabase() async {
+        // Insert species and bait
+        DemoData.species.forEach { context.insert($0) }
+        DemoData.baits.forEach { context.insert($0) }
+
+        for _ in 1...10 {
+            let locationCoord = DemoData.locations.randomElement() ?? CLLocationCoordinate2D(latitude: 1.0, longitude: 1.0)
+            let location = CLLocation(latitude: locationCoord.latitude, longitude: locationCoord.longitude)
+
+            let weather: EntryWeather
+            do {
+                weather = try await WeatherManager.shared.getWeather(location: location)
+            } catch {
+                print("⚠️ Weather fetch failed: \(error)")
+                continue
+            }
+
+            let entry = Entry(lat: locationCoord.latitude, lon: locationCoord.longitude)
+            entry.weather = weather
+            entry.species = allSpecies.randomElement() ?? Species("Error", .unknown, .unknown)
+            entry.bait = allBaits.randomElement() ?? Bait("Error", .unknown, .unknown, "Error")
+            entry.weight = DemoData.fishWeights.randomElement()
+            entry.length = DemoData.fishLengths.randomElement()
+            entry.waterTemperature = DemoData.waterTemperatures.randomElement() ?? 11
+            entry.waterVisibility = DemoData.waterVisibilities.randomElement() ?? 11
+            entry.catchDepth = DemoData.catchDepts.randomElement() ?? 11
+            entry.castingMethod = DemoData.methods.randomElement() ?? .unknown
+            entry.notes = DemoData.notes.randomElement() ?? "Error"
+
+            context.insert(entry)
         }
-        
-        DemoData.baits.forEach { item in
-            localContext.insert(item)
-        }
-        
-        for _ in 1...Int(slider){
-            let randomLocation = DemoData.locations.randomElement() ?? CLLocationCoordinate2D(latitude: 1.0, longitude: 1.0)
-            
-            let newEntry = Entry(lat: randomLocation.latitude, lon: randomLocation.longitude)
-            
-            newEntry.species = allSpecies.randomElement() ?? Species("Error", .unknown, .unknown)
-            newEntry.bait = allBaits.randomElement() ?? Bait("Error", .unknown, .unknown, "Error")
-            newEntry.weight = DemoData.fishWeights.randomElement()
-            newEntry.length = DemoData.fishLengths.randomElement()
-            
-            newEntry.waterTemperature = DemoData.waterTemperatures.randomElement() ?? nil
-            newEntry.waterVisibility = DemoData.waterVisibilities.randomElement() ?? nil
-            newEntry.catchDepth = DemoData.catchDepts.randomElement() ?? nil
-            newEntry.castingMethod = DemoData.methods.randomElement() ?? .unknown
-            newEntry.notes = DemoData.notes.randomElement() ?? "Error"
-            
-            newEntry.weather = DemoData.weathers.randomElement() ?? nil
-            
-            localContext.insert(newEntry)
-            
-        }
-        
+
         do {
-            try localContext.save()
+            try context.save()
+            print("✅ Finished saving entries.")
         } catch {
-            print("Error saving context")
+            print("❌ Error saving context: \(error)")
         }
-        
-        
-        print("Fin")
     }
     
 }
 
 #Preview {
     DataDemo()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self])
+        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
         
 }
 
@@ -515,85 +527,55 @@ struct DemoData {
     ]
     
     static let weathers: [EntryWeather?] = [
-        nil,
         EntryWeather(
-            id: UUID(),
-            temp_current: 16.2,
-            temp_feels: 15.0,
-            temp_low: 13.5,
-            temp_high: 17.8,
-            humidity: 88.0,
-            pressure: 1003.1,
-            pressureTrend: .falling,
-            condition: "Rain",
-            condition_symbol: "cloud.rain.fill",
-            cloudCover: 100.0,
-            uvIndex: 1,
-            isDaylight: true,
-            sunset: Date().addingTimeInterval(3600 * 3),
-            sunrise: Date().addingTimeInterval(-3600 * 6),
-            dawn: Date().addingTimeInterval(-3600 * 7),
-            dusk: Date().addingTimeInterval(3600 * 4),
-            visibility: 6.0,
-            wind_speed: 18.0,
-            wind_gusts: 30.0,
-            precipitation_amount: 5.4,  // mm
-            precipitation_chance: 90.0,
-            moon: .firstQuarter
+          id: UUID(),
+          temp_current: 28.5, temp_feels: 30.0, temp_low: 20.0, temp_high: 31.0,
+          humidity: 70.0, pressure: 1012.0, pressureTrend: .steady,
+          condition: "Clear", condition_symbol: "sun.max",
+          cloudCover: 0.1, uvIndex: 8,
+          sunset: date(from: "2025-07-01 20:41"),
+          sunrise: date(from: "2025-07-01 05:50"),
+          moon: .firstQuarter,
+          moonrise: date(from: "2025-07-01 00:17"),
+          moonset: date(from: "2025-07-01 12:31"),
+          visibility: 10_000, wind_speed: 5.0, wind_gusts: 8.0,
+          precipitation_amount: 0.0, precipitation_chance: 0.1
         ),
         EntryWeather(
-            id: UUID(),
-            temp_current: 27.4,
-            temp_feels: 29.0,
-            temp_low: 21.0,
-            temp_high: 30.0,
-            humidity: 62.0,
-            pressure: 1012.3,
-            pressureTrend: .steady,
-            condition: "Partly Cloudy",
-            condition_symbol: "cloud.sun",
-            cloudCover: 45.0,
-            uvIndex: 6,
-            isDaylight: true,
-            sunset: Date().addingTimeInterval(3600 * 5),
-            sunrise: Date().addingTimeInterval(-3600 * 8),
-            dawn: Date().addingTimeInterval(-3600 * 9),
-            dusk: Date().addingTimeInterval(3600 * 6),
-            visibility: 10.0,
-            wind_speed: 14.0,
-            wind_gusts: 20.0,
-            precipitation_amount: 0.0,
-            precipitation_chance: 10.0,
-            moon: .waxingGibbous
+          id: UUID(),
+          temp_current: 27.0, temp_feels: 29.0, temp_low: 21.0, temp_high: 30.0,
+          humidity: 75.0, pressure: 1010.5, pressureTrend: .rising,
+          condition: "Partly Cloudy", condition_symbol: "cloud.sun",
+          cloudCover: 0.4, uvIndex: 7,
+          sunset: date(from: "2025-07-21 20:45"),
+          sunrise: date(from: "2025-07-21 05:51"),
+          moon: .lastQuarter,
+          moonrise: date(from: "2025-07-21 03:06"),
+          moonset: date(from: "2025-07-21 17:42"),
+          visibility: 10_000, wind_speed: 4.0, wind_gusts: 6.0,
+          precipitation_amount: 0.5, precipitation_chance: 0.3
         ),
         EntryWeather(
-            id: UUID(),
-            temp_current: 5.6,
-            temp_feels: 3.0,
-            temp_low: 2.0,
-            temp_high: 8.5,
-            humidity: 97.0,
-            pressure: 1007.2,
-            pressureTrend: .falling,
-            condition: "Fog",
-            condition_symbol: "cloud.fog",
-            cloudCover: 100.0,
-            uvIndex: 0,
-            isDaylight: false,
-            sunset: Date().addingTimeInterval(-3600 * 16),
-            sunrise: Date().addingTimeInterval(600), // in 10 minutes
-            dawn: Date().addingTimeInterval(-300),   // just ended
-            dusk: Date().addingTimeInterval(3600 * 10),
-            visibility: 0.3, // very low
-            wind_speed: 3.0,
-            wind_gusts: 5.0,
-            precipitation_amount: 0.0,
-            precipitation_chance: 5.0,
-            moon: .waningCrescent
+          id: UUID(),
+          temp_current: 26.0, temp_feels: 28.0, temp_low: 20.5, temp_high: 29.0,
+          humidity: 72.0, pressure: 1009.0, pressureTrend: .falling,
+          condition: "Overcast", condition_symbol: "cloud.fill",
+          cloudCover: 0.8, uvIndex: 5,
+          sunset: date(from: "2025-07-31 20:38"),
+          sunrise: date(from: "2025-07-31 05:47"),
+          moon: .waxingCrescent,
+          moonrise: date(from: "2025-07-31 12:58"),
+          moonset: date(from: "2025-07-30 18:38"), // previous evening
+          visibility: 9_000, wind_speed: 6.0, wind_gusts: 9.0,
+          precipitation_amount: 1.2, precipitation_chance: 0.5
         )
     ]
     
+    
     //Helpers
+    
+
+    
     let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -601,6 +583,13 @@ struct DemoData {
         return formatter
     }()
     
+}
+
+func date(from string: String) -> Date {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yyyy-MM-dd HH:mm"
+    formatter.timeZone = TimeZone(identifier: "America/New_York") // or your desired TZ
+    return formatter.date(from: string)!
 }
 
 #endif

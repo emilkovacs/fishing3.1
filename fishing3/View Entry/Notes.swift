@@ -10,20 +10,18 @@ import Foundation
 
 // MARK: - FOOD
 /// Breakfast: Eggs sunny side up with chives and cucumber.
-/// Lunch: Grandma
-/// Dinner: Spaghetti meatballs,
+/// Lunch: Salad from Grandma's chicken
+/// Dinner: Chili Beans
 ///
 
 // MARK: - DORKA STUFF
-/// MTTK Basic stuff
+/// MTTK Handle new form submissions
+/// Ask mother about MTTK Contract
 /// Ping Peter about Baracska, MTS Internet works?
-/// Recipes/Brief handoff to Arpad
-/// Packaging finish
-/// Paint the chair's backrest
-/// Mother MTTK Billing?
+/// Recipes/Brief handoff to Arpad, did you send it? :D
+/// `Packaging finish`
 
-// Next days
-/// Paint the cat's trashcan
+
 
 // MARK: - EMIL WORK
 
@@ -32,5 +30,7 @@ import Foundation
 ///
 /// Evening: Fishing instagram setup
 
+
+
 // Next days
-/// Schedule fishing meet with Baracska?
+/// Schedule fishing meet with Baracska??? or how/what?

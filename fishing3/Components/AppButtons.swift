@@ -63,6 +63,46 @@ struct CapsuleButton: View {
     }
 }
 
+struct SelectorButton: View {
+    
+    let title: String
+    let label: String
+    let action: () -> Void
+    
+    var body: some View {
+        Button {
+            action()
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title)
+                    .padding(.bottom,8)
+                    .foregroundStyle(AppColor.half)
+                    .font(.callout2)
+                    .fontWeight(.medium)
+                HStack{
+                    Text(label)
+                        .foregroundStyle(AppColor.primary)
+                        .fontWeight(.medium)
+                        .font(.headline)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(AppColor.button)
+                }
+                
+                Divider().padding(.vertical,16)
+            }
+        }
+
+    }
+    
+    init(_ title: String, _ label: String, action: @escaping () -> Void) {
+        self.title = title
+        self.label = label
+        self.action = action
+    }
+}
 
 //MARK: - LABELS
 
@@ -105,8 +145,241 @@ struct CircleLabel: View {
     }
 }
 
+//MARK: - INPUTS
+
+struct SearchBar: View {
+    
+    @Binding var filterString: String
+    let prompt: String
+    
+    @FocusState private var focused
+    
+    var body: some View {
+        TextField(text: $filterString, prompt: Text(prompt)) { Text(filterString) }
+            .font(.callout)
+            .fontWeight(.medium)
+            .foregroundStyle(AppColor.primary)
+            .autocorrectionDisabled()
+        
+            .frame(height: AppSize.buttonSize * 1.25)
+            .padding(.leading,AppSize.buttonSize + 6)
+            .background(AppColor.secondary)
+            .cornerRadius(AppSize.buttonSize * 1.2)
+            .overlay(alignment: .leading) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(AppColor.button)
+                    .padding(.leading)
+                    .fontWeight(.semibold)
+                    .font(.callout2)
+            }
+            .overlay(alignment: .trailing) {
+                if !filterString.isEmpty {
+                    Button {
+                        filterString = ""
+                    } label: {
+                        Image(systemName: "xmark")
+                            .foregroundStyle(AppColor.button)
+                            .frame(width: AppSize.buttonSize + 6, height: AppSize.buttonSize)
+                            .fontWeight(.semibold)
+                            .font(.caption)
+                            .contentShape(Rectangle())
+                    }
+                }
+            }
+            .padding(.horizontal)
+        
+            .focused($focused)
+            .onDisappear { focused = false }
+            .onTapGesture { focused = true }
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom,AppSafeArea.edges.bottom)
+        
+            
+            
+    }
+}
+
+struct LargeStringInput: View {
+    
+    let title: String
+    let prompt: String
+    @Binding var text: String
+    let limit: Int
+    
+    @FocusState private var focused: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .padding(.bottom,8)
+                .foregroundStyle(AppColor.half)
+                .font(.callout2)
+                .fontWeight(.medium)
+            TextField(text: $text, prompt: Text(prompt), label: {Text(title)})
+                .fontWeight(.medium)
+                .font(.headline)
+                .focused($focused)
+                .onDisappear { focused = false }
+                .onChange(of: focused, { oldValue, newValue in
+                    if text == "New Species" || text == "New Bait" {
+                        text = ""
+                    }
+                    if newValue {
+                        AppHaptics.light()
+                    }
+                })
+                .onChange(of: text, { oldValue, newValue in
+                    if newValue.count >= limit {
+                        text = oldValue
+                    }
+                })
+                .overlay(alignment: .trailing) {
+                    if !text.isEmpty {
+                        Button {
+                            text = ""
+                        } label: {
+                            Image(systemName: "xmark")
+                                .foregroundStyle(AppColor.button)
+                                .frame(width: AppSize.buttonSize, height: AppSize.buttonSize,alignment: .trailing)
+                                .fontWeight(.semibold)
+                                .font(.caption)
+                                .contentShape(Rectangle())
+                                
+                        }
+                    }
+                }
+                
+            
+            Divider().padding(.vertical,16)
+        }
+    }
+    
+    init(_ title: String, _ prompt: String, _ text: Binding<String>, limit: Int = 24) {
+        self.title = title
+        self.prompt = prompt
+        self._text = text
+        self.limit = limit
+    }
+}
+
+struct LargeStringVerticalInput: View {
+    
+    let title: String
+    let prompt: String
+    @Binding var text: String
+    let limit: Int
+    
+    @FocusState private var focused: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .padding(.bottom,8)
+                .foregroundStyle(AppColor.half)
+                .font(.callout2)
+                .fontWeight(.medium)
+             
+            //TextField(text: $text, prompt: Text(prompt), label: {Text(title)})
+            
+            TextField("", text: $text, prompt: Text(prompt), axis: .vertical)
+                .fontWeight(.medium)
+                .font(.headline)
+                .focused($focused)
+                .onDisappear { focused = false }
+                .onChange(of: focused, { oldValue, newValue in
+                    if newValue {
+                        AppHaptics.light()
+                    }
+                })
+                .onChange(of: text, { oldValue, newValue in
+                    if newValue.count >= limit {
+                        text = oldValue
+                    }
+                })
+                            
+            Divider().padding(.vertical,16)
+        }
+    }
+    
+    init(_ title: String, _ prompt: String, _ text: Binding<String>, limit: Int = 120) {
+        self.title = title
+        self.prompt = prompt
+        self._text = text
+        self.limit = limit
+    }
+}
+
+
+//Selector
+struct LargeSelector<T:Selectable>: View {
+    
+
+    let title: String
+    @Binding var selection: T
+    
+    var body: some View {
+        Menu {
+            Picker(title, selection: $selection) {
+                ForEach(T.allCases){ item in
+                    Label(item.label, systemImage: item.symbolName).tag(item)
+                }
+            }
+        } label: {
+            VStack(alignment: .leading,spacing: 0){
+                Text(title)
+                    .padding(.bottom,8)
+                    .foregroundStyle(AppColor.half)
+                    .font(.callout2)
+                    .fontWeight(.medium)
+                HStack{
+                    Text(selection.label)
+                        .font(.headline)
+                    if selection.label != "Unknown" {
+                        Image(systemName: selection.symbolName)
+                            .font(.callout2)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(AppColor.button)
+                }
+                .foregroundStyle(AppColor.primary)
+                
+                Divider().padding(.vertical,16)
+            }
+            .offset(x:-24)
+            
+        }
+        .offset(x:24)
+        .buttonStyle(ActionButtonStyle({
+            AppHaptics.light()
+        }))
+
+    }
+    
+    init(_ title: String, _ selection: Binding<T>) {
+        self.title = title
+        self._selection = selection
+    }
+}
 
 //MARK: - HELPERS
+
+/// Used for menus to have animations and haptics feedbacks
+struct ActionButtonStyle: ButtonStyle {
+    var action: () -> Void
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, _ in
+                action()
+            }
+    }
+    
+    init(_ action: @escaping () -> Void) {
+        self.action = action
+    }
+}
 
 func animatePress(scale: Binding<CGFloat>) {
     withAnimation(.bouncy.speed(2)) {
@@ -122,6 +395,12 @@ func animatePress(scale: Binding<CGFloat>) {
 
 #if DEBUG
 struct AppButtons_PreviewWrapper: View {
+    
+    @State private var filterString: String = ""
+    @State private var largeString: String = ""
+    @State private var notesString: String = ""
+    @State private var speciesWater: SpeciesWater = .unknown
+    
     var body: some View {
         ZStack{
             ScrollView{
@@ -132,13 +411,27 @@ struct AppButtons_PreviewWrapper: View {
                             
                         }
                         CapsuleLabel(symbol: "matter.logo", title: "Matter")
-
+                        
                     }
                     .padding(.horizontal)
                     
+                    LargeStringInput("Name", "Unique Name", $largeString)
+                        .padding()
+                    SelectorButton("Species", "Carp") {
+                        
+                    }
+                    .padding()
+                    LargeSelector("Water", $speciesWater)
+                        .padding()
+                    
+                    LargeStringVerticalInput("Notes", "Notes", $notesString, limit: 120)
+                        .padding()
+                    
+                    SearchBar(filterString: $filterString, prompt: "Search things")
                     
                     HStack{Spacer()}
                 }
+                
             }
             .scrollIndicators(.hidden)
         }

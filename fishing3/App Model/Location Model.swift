@@ -9,15 +9,16 @@ import Foundation
 import CoreLocation
 
 
-@Observable
 class LocationManager: NSObject, CLLocationManagerDelegate {
+    
+    static let shared = LocationManager()
     
     private let manager = CLLocationManager()
     private var locationCompletion: ((CLLocation) -> Void)?
     
     var authorizationStatus: CLAuthorizationStatus = .notDetermined
     
-    private let fallbackLocation = CLLocation(latitude: 46.09776, longitude: 19.75805) // Palic Park
+    let fallbackLocation = CLLocation(latitude: 46.09776, longitude: 19.75805) // Palic Park
     
     override init() {
         super.init()

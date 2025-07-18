@@ -12,7 +12,7 @@ import MapKit
 
 // Leave the dropdowns for a bit, they can be sorted out later.
 /// Maybe create a `solunar` part for the moon phase and sunrise/sunset etc thing.
-/// Maybe some simple charts, comparisons, percentiles?
+/// `charts` Maybe some simple charts, comparisons, percentiles?
 
 
 //Apple Maps and Weather attribution needs to be fixed.
@@ -37,7 +37,8 @@ struct ViewEntry: View {
     
     @Environment(\.colorScheme) var colorScheme
     
-    let entry: Entry
+    @Bindable var entry: Entry
+    //var backAction: () -> Void
     
     var body: some View {
         ZStack{
@@ -204,7 +205,6 @@ struct ViewEntryHeader: View {
         
     }
 }
-
 struct ViewEntryDrops: View {
     let entry: Entry
     
@@ -238,6 +238,11 @@ struct ViewEntryDrops: View {
         .animation(.default, value: expandStatistics)
     }
 }
+
+
+
+// AStusofj
+
 
 struct ViewEntryDrop<Content:View>:View {
     
@@ -476,7 +481,12 @@ struct ViewEntry_Solunar: View {
         ViewEntryLine(symbol: "sunset.fill", title: "Sunset") {
             Text(DateFormatter.dateTime(entry.weather?.sunset ?? Date()))
         }
-        
+        ViewEntryLine(symbol: "moonrise.fill", title: "Moonrise") {
+            Text(DateFormatter.dateTime(entry.weather?.sunset ?? Date()))
+        }
+        ViewEntryLine(symbol: "moonset.fill", title: "Moonset") {
+            Text(DateFormatter.dateTime(entry.weather?.sunset ?? Date()))
+        }
     }
 }
 
@@ -568,7 +578,7 @@ private struct ViewEntry_Preview: View {
     @Query var allEntries: [Entry]
     
     var body: some View {
-        ViewEntry(entry: allEntries[3])
+        ViewEntry(entry: allEntries[8])
     }
 }
 
@@ -576,5 +586,5 @@ private struct ViewEntry_Preview: View {
 
 #Preview {
     ViewEntry_Preview()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self])
+        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
 }
