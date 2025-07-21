@@ -166,6 +166,7 @@ class EntryWeather {
         let current = weather.currentWeather
         let forecast = weather.dailyForecast.first
         
+        
         self.id = UUID()
         
         self.temp_current = current.temperature.value

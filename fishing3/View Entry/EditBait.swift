@@ -56,6 +56,7 @@ struct EditBait: View {
         HStack{
             CircleButton("chevron.left") { back() }
             Spacer()
+            CircleButton(bait.star ? "star.fill" : "star") { bait.star.toggle() }
         }
         .padding(.horizontal)
         .padding(.top,AppSafeArea.edges.top)

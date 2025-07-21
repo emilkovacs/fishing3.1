@@ -8,12 +8,40 @@
 import SwiftUI
 import SwiftData
 
-
+enum ListOptions: String, Selectable {
+    case recents, forwward, backward
+    var id: String { self.rawValue }
+    var label: String {
+        switch self {
+        case .recents: return "Recents Top"
+        case .forwward: return "Forward"
+        case .backward: return "Backward"
+        }
+    }
+    
+    var shortLabel: String {
+        switch self {
+        case .recents: return ""
+        case .forwward: return ""
+        case .backward: return ""
+        }
+    }
+    var symbolName: String {
+        switch self {
+        case .recents: return "arrowshape.up.fill"
+        case .forwward: return "arrowshape.right.fill"
+        case .backward: return "arrowshape.left.fill"
+        }
+    }
+    
+    
+}
 
 struct ListSpecies: View {
     
     @State private var demoString: String = ""
     @Query(sort: \Species.name) var allSpecies: [Species]
+    
     
     var filteredSpecies: [Species] {
         guard !demoString.isEmpty else { return allSpecies}
@@ -33,12 +61,13 @@ struct ListSpecies: View {
                         SpeciesRow(species: specie)
                             .contextMenu{
                                 Button("Select", systemImage: "checkmark"){}
+                                Button("Star", systemImage: "star"){specie.star.toggle()}
                                 Button("Edit", systemImage: "pencil"){}
                                 Button("Delete", systemImage: "trash"){}
                             }
                             .swipeActions(edge: .leading, allowsFullSwipe: true) {
                                 Button() {
-                                    //delete(item)
+                                    specie.star.toggle()
                                 } label: {
                                     Label("Edit", systemImage: "star")
                                 }
@@ -164,6 +193,14 @@ struct SpeciesRow: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack{
+                
+                if species.star {
+                    Image(systemName: "star.fill")
+                        .foregroundStyle(AppColor.half)
+                        .font(.callout2)
+                        .fontWeight(.medium)
+                }
+                
                 Text(species.name)
                     .fontWeight(.medium)
                 Spacer()

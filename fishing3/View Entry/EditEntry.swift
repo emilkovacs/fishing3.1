@@ -9,16 +9,30 @@ import SwiftUI
 import SwiftData
 import MapKit
 
+
 //Creates or edits an entry.
 
 //Map
-
 //Main
-
 //Details
 //Conditions
 //Solunar
 
+class EditEntryViewModel {
+    
+    var entry: Entry
+    var new: Bool
+    
+    var weather: EntryWeather?
+    var location: CLLocation?
+    
+    init(entry: Entry, new: Bool, weather: EntryWeather? = nil, location: CLLocation? = nil) {
+        self.entry = entry
+        self.new = new
+        self.weather = weather
+        self.location = location
+    }
+}
 
 struct EditEntry: View {
     
@@ -86,6 +100,7 @@ struct EditEntry_BottomControls: View {
 
 struct EditEntryMap: View {
     
+    @State private var cameraPosition: MapCameraPosition
     let entryCoordinate: CLLocationCoordinate2D
     let entryRegion: MKCoordinateRegion
     
@@ -96,7 +111,16 @@ struct EditEntryMap: View {
         isSatelite ? MapStyle.hybrid(elevation: .realistic, pointsOfInterest: .excludingAll, showsTraffic: false) : MapStyle.standard(elevation: .realistic, emphasis: .automatic, pointsOfInterest: .excludingAll, showsTraffic: false)
     }
     
+    @State private var otherCenter: CLLocationCoordinate2D?
     private let mapHeight: CGFloat = 420
+    let strokeStyle = StrokeStyle(
+        lineWidth: 3,
+        lineCap: .round,
+        lineJoin: .round,
+        dash: [3, 6]
+    )
+        
+    let gradient = Gradient(colors: [.red, .green, .blue])
     
     init(lat: Double, lon: Double) {
         let coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: lat, longitude: lon)
@@ -104,6 +128,12 @@ struct EditEntryMap: View {
         let region: MKCoordinateRegion = MKCoordinateRegion(center: coordinate, span: .init(latitudeDelta: delta, longitudeDelta: delta))
         self.entryCoordinate = coordinate
         self.entryRegion = region
+        self._cameraPosition = State(initialValue: MapCameraPosition.region(
+            MKCoordinateRegion(
+                center: coordinate,
+                span: MKCoordinateSpan(latitudeDelta: delta, longitudeDelta: delta)
+            )
+        ))
     }
     
     var body: some View {
@@ -113,11 +143,42 @@ struct EditEntryMap: View {
                 let clampedY = max(geo.frame(in: .global).minY, 0)
                 
                 ZStack(alignment: .center){
-                    Map(initialPosition: .region(entryRegion)){
+                    
+                    
+                    Map(position: $cameraPosition){
                     
                         Marker(coordinate: entryCoordinate) { Text("Catch")}
                         
-                    
+                        if let coordinate = cameraPosition.camera?.centerCoordinate {
+                            Marker(coordinate: coordinate) { Text("Center")}
+                            let content = [coordinate,entryCoordinate]
+                            MapPolyline(coordinates: content)
+                            .stroke(gradient, style: strokeStyle)
+
+                        }
+                        
+                        
+                        if let asd = otherCenter{
+                            
+                            let a1 = CLLocation(latitude: asd.latitude, longitude: asd.longitude)
+                            let a2 =  CLLocation(latitude: entryCoordinate.latitude, longitude: entryCoordinate.longitude)
+                            
+                            let dist = a1.distance(from: a2)
+                            
+                            
+                            let content = [asd,entryCoordinate]
+                            Marker(coordinate: asd) { Text("\(Int(dist))")}
+                            
+                            MapPolyline(coordinates:content)
+                            .stroke(gradient, style: strokeStyle)
+
+                        }
+                        
+                        
+                        
+                    }
+                    .onMapCameraChange { context in
+                        otherCenter = context.region.center
                     }
                     .mapStyle(mapStyle)
                     .grayscale(1.0)
@@ -212,6 +273,42 @@ struct EditEntryContent: View {
                     LargeStringInput("Water visibility", "0 cm", .constant(""))
                 }
                 LargeSelector("Bottom type", $entry.bottomType)
+                
+                
+                Text("Weather")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .padding(.top,24)
+                    .padding(.bottom,24)
+                
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack{
+                       Text("Location")
+                        Spacer()
+                        Text("15.2344, 58.2344")
+                            .textSelection(.enabled)
+                            .foregroundStyle(AppColor.half)
+                    }
+                    HStack{
+                       Text("Time of log")
+                        Spacer()
+                        Text("2025, July 15 at 14:14")
+                            .foregroundStyle(AppColor.half)
+                    }
+                    HStack{
+                       Text("Tide state")
+                        Spacer()
+                        Text("Rising")
+                            .foregroundStyle(AppColor.half)
+                    }
+                }
+                .font(.callout)
+                
+                Text("Solunar")
+                    .font(.title3)
+                    .fontWeight(.medium)
+                    .padding(.top,24)
+                    .padding(.bottom,24)
                 
                 /*
                 ViewEntryDrop(symbol: "photo", title: "Photos", isExpanded: .constant(false)) {

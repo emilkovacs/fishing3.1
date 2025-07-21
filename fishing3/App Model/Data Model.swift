@@ -76,18 +76,21 @@ class Species {
     var name: String
     var water: SpeciesWater
     var behaviour: SpeciesBehaviour
+    var star: Bool
     
-    init(id: UUID, name: String, water: SpeciesWater, behaviour: SpeciesBehaviour) {
+    init(id: UUID, name: String, water: SpeciesWater, behaviour: SpeciesBehaviour,star: Bool) {
         self.id = id
         self.name = name
         self.water = water
         self.behaviour = behaviour
+        self.star = star
     }
-    init(_ name: String, _ water: SpeciesWater, _ behaviour: SpeciesBehaviour) {
+    init(_ name: String, _ water: SpeciesWater, _ behaviour: SpeciesBehaviour,) {
         self.id = UUID()
         self.name = name
         self.water = water
         self.behaviour = behaviour
+        self.star = false
     }
 }
 
@@ -100,13 +103,15 @@ class Bait {
     var type: BaitType
     var position: BaitPosition
     var notes: String = ""
+    var star: Bool
     
-    init(id: UUID, name: String, type: BaitType, position: BaitPosition, notes: String) {
+    init(id: UUID, name: String, type: BaitType, position: BaitPosition, notes: String,star: Bool) {
         self.id = id
         self.name = name
         self.type = type
         self.position = position
         self.notes = notes
+        self.star = star
     }
     
     init(_ name: String, _ type: BaitType, _ position: BaitPosition, _ notes: String) {
@@ -115,8 +120,12 @@ class Bait {
         self.type = type
         self.position = position
         self.notes = notes
+        self.star = false
     }
    
     
 }
+
+
+
 

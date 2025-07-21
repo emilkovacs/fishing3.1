@@ -56,6 +56,7 @@ struct EditSpecies: View {
         HStack{
             CircleButton("chevron.left") { back() }
             Spacer()
+            CircleButton(species.star ? "star.fill" : "star") { species.star.toggle() }
         }
         .padding(.horizontal)
         .padding(.top,AppSafeArea.edges.top)
@@ -160,7 +161,7 @@ struct EditSpecies_PreviewWrapper: View {
     @Query var species: [Species]
     
     var body: some View {
-        EditSpecies(species: species[3], new: true) {
+        EditSpecies(species: species[3], new: false) {
             print("bck")
         }
     }

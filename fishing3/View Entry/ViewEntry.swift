@@ -578,7 +578,7 @@ private struct ViewEntry_Preview: View {
     @Query var allEntries: [Entry]
     
     var body: some View {
-        ViewEntry(entry: allEntries[8])
+        ViewEntry(entry: allEntries[7])
     }
 }
 
