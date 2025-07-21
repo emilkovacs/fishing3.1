@@ -139,7 +139,12 @@ struct EditSpecies: View {
             
         
         //Save and insert if needed
-        if new { context.insert(species) }
+        if new {
+            context.insert(species)
+        } else {
+            // Update timestamp to be at the top of last added. :) 
+            species.timestamp = Date()
+        }
         
         do {
             try context.save()

@@ -311,6 +311,26 @@ struct LargeStringVerticalInput: View {
 
 
 //Selector
+struct CircleSelector<T:Selectable>: View {
+    let symbol: String
+    @Binding var selection: T
+    var body: some View {
+        Menu {
+            Picker("", selection: $selection) {
+                ForEach(T.allCases){ item in
+                    Label(item.label, systemImage: item.symbolName).tag(item)
+                }
+            }
+        } label: {
+            CircleLabel(symbol: symbol)
+        }
+        .buttonStyle(ActionButtonStyle({
+            AppHaptics.light()
+        }))
+
+    }
+}
+
 struct LargeSelector<T:Selectable>: View {
     
 
@@ -411,6 +431,8 @@ struct AppButtons_PreviewWrapper: View {
                             
                         }
                         CapsuleLabel(symbol: "matter.logo", title: "Matter")
+                        Spacer()
+                        CircleSelector(symbol: "circle", selection: $speciesWater)
                         
                     }
                     .padding(.horizontal)
@@ -423,6 +445,7 @@ struct AppButtons_PreviewWrapper: View {
                     .padding()
                     LargeSelector("Water", $speciesWater)
                         .padding()
+                    
                     
                     LargeStringVerticalInput("Notes", "Notes", $notesString, limit: 120)
                         .padding()

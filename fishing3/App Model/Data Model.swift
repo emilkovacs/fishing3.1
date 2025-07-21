@@ -73,6 +73,7 @@ class Entry {
 @Model
 class Species {
     @Attribute(.unique) var id: UUID
+    var timestamp: Date
     var name: String
     var water: SpeciesWater
     var behaviour: SpeciesBehaviour
@@ -80,6 +81,7 @@ class Species {
     
     init(id: UUID, name: String, water: SpeciesWater, behaviour: SpeciesBehaviour,star: Bool) {
         self.id = id
+        self.timestamp = Date()
         self.name = name
         self.water = water
         self.behaviour = behaviour
@@ -87,6 +89,7 @@ class Species {
     }
     init(_ name: String, _ water: SpeciesWater, _ behaviour: SpeciesBehaviour,) {
         self.id = UUID()
+        self.timestamp = Date()
         self.name = name
         self.water = water
         self.behaviour = behaviour
@@ -99,6 +102,7 @@ class Species {
 @Model
 class Bait {
     @Attribute(.unique) var id: UUID
+    var timestamp: Date
     var name: String
     var type: BaitType
     var position: BaitPosition
@@ -107,6 +111,7 @@ class Bait {
     
     init(id: UUID, name: String, type: BaitType, position: BaitPosition, notes: String,star: Bool) {
         self.id = id
+        self.timestamp = Date()
         self.name = name
         self.type = type
         self.position = position
@@ -116,6 +121,7 @@ class Bait {
     
     init(_ name: String, _ type: BaitType, _ position: BaitPosition, _ notes: String) {
         self.id = UUID()
+        self.timestamp = Date()
         self.name = name
         self.type = type
         self.position = position

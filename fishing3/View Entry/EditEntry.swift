@@ -51,7 +51,7 @@ struct EditEntry: View {
             }
             .scrollIndicators(.hidden)
             
-            BottomBlocker()
+            ListBottomBlocker()
                 .ignoresSafeArea(.all)
             EditEntry_BottomControls()
             EditEntry_TopControls()
