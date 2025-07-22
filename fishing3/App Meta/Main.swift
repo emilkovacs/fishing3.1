@@ -11,8 +11,11 @@ import SwiftUI
 struct fishing3App: App {
     var body: some Scene {
         WindowGroup {
+            //CameraView_PreviewWrapper()
+            
             ListSpecies_PreviewWrapper()
                 .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+             
         }
     }
 }

@@ -18,36 +18,78 @@ import MapKit
 //Conditions
 //Solunar
 
+@Observable
 class EditEntryViewModel {
     
+    var context: ModelContext
     var entry: Entry
     var new: Bool
+    var backAction: () -> Void
     
     var weather: EntryWeather?
-    var location: CLLocation?
+    var locationCoordinate: CLLocation?
     
-    init(entry: Entry, new: Bool, weather: EntryWeather? = nil, location: CLLocation? = nil) {
+    //View controls
+    var listSpecies: Bool = false
+    var listBaits: Bool = false
+    var viewTitle: String
+    
+    init(context: ModelContext,entry: Entry, new: Bool, weather: EntryWeather? = nil, location: CLLocation, backAction: @escaping () -> Void) {
+        self.context = context
         self.entry = entry
         self.new = new
         self.weather = weather
-        self.location = location
+        self.locationCoordinate = location
+        self.backAction = backAction
+        self.viewTitle = new ? "Add Catch" : "Edit Catch"
     }
+    
+    func getWeather(){
+        Task{
+            if let loc = locationCoordinate {
+                let currentWeather = try await WeatherManager.shared.getWeather(location: loc)
+                    weather = currentWeather
+            } else {
+                weather = nil
+            }
+        }
+    }
+    
+    //View functions
+    func showSpecies(){
+        withAnimation { listSpecies = true }
+    }
+    func hideSpecies(){
+        withAnimation { listSpecies = false }
+    }
+    func showBaits(){
+        withAnimation { listBaits = true }
+    }
+    func hideBaits(){
+        withAnimation { listBaits = false }
+    }
+    
+    
 }
 
 struct EditEntry: View {
-    
     @Environment(\.modelContext) var context
+    @Bindable var vm: EditEntryViewModel
     
-    @Bindable var entry: Entry
-    var newEntry: Bool
-    var backAction: () -> Void
+    init(context: ModelContext, location: CLLocation, entry: Entry, newEntry: Bool, backAction: @escaping () -> Void ) {
+        self.vm = EditEntryViewModel(context: context,entry: entry, new: newEntry,location: location, backAction: backAction)
+    }
     
     var body: some View {
         ZStack{
             ScrollView{
-                EditEntryMap(lat: entry.latitude, lon: entry.longitude)
-                EditEntryContent(entry: entry)
-                    .padding(.top,-84)
+                if vm.locationCoordinate != nil {
+                    EditEntryMap(
+                        vm: vm,
+                        initialLocation: CLLocationCoordinate2D(latitude: vm.locationCoordinate!.coordinate.latitude, longitude: vm.locationCoordinate!.coordinate.longitude))
+                }
+                
+                EditEntryComposer(vm: vm)
             }
             .scrollIndicators(.hidden)
             
@@ -55,11 +97,178 @@ struct EditEntry: View {
                 .ignoresSafeArea(.all)
             EditEntry_BottomControls()
             EditEntry_TopControls()
+            
+            
+            if vm.listSpecies{
+                ListSpecies(mode: .select, selectedSpecies: $vm.entry.species, context: context) { vm.hideSpecies() }
+                    .transition(.blurReplace)
+            }
+            if vm.listBaits{
+                ListBaits(mode: .select, selectedBait: $vm.entry.bait, context: context) { vm.hideBaits()}
+                    .transition(.blurReplace)
+            }
                 
         }
-        .background(AppColor.tone)
+        .background(
+            AppColor.tone
+                .ignoresSafeArea(.all)
+        )
         .ignoresSafeArea(.container)
+    }
+}
+struct EditEntryComposer: View {
+    
+    @Bindable var vm: EditEntryViewModel
+    
+    var body: some View {
+        VStack{
+            VStack(alignment: .leading, spacing: 0) {
+                //Main & Photoes.
+                
+                HStack{
+                    HStack{
+                        Image(systemName: "calendar")
+                        Text("June 26, 14:38")
+                    }
+                        .font(.caption)
+                        .padding(.vertical,6)
+                        .padding(.horizontal,12)
+                        .background(AppColor.secondary)
+                        .cornerRadius(30)
+                        .padding(.leading,-6)
+                    Spacer()
+                }
+                
+                Text(vm.viewTitle)
+                    .font(.title)
+                    .fontWeight(.medium)
+                    .padding(.top,16)
+                    .padding(.bottom,32)
+                
+                EditMainDetails(vm: vm)
+                EditCatchDetails(vm: vm)
+                EditWaterDetails(vm:vm)
+                //Weather
+                //Solunar
+            }
+        }
+        .padding()
+        .padding(.bottom,AppSafeArea.edges.bottom + AppSize.buttonSize)
+        .background(
+            VStack(spacing: 0, content: {
+                LinearGradient(
+                    colors: [
+                        AppColor.tone,
+                        AppColor.tone.opacity(0.75),
+                        AppColor.tone.opacity(0.0)
+                    ],
+                    startPoint: .bottom, endPoint: .top)
+                    .frame(height: 50)
+                 
+                AppColor.tone
+            })
+        )
+        .padding(.top,-102)
+    }
+    
+    
+    
+    struct EditMainDetails: View {
+        @Bindable var vm: EditEntryViewModel
         
+        var speciesTitle: String {
+            vm.entry.species == nil ? "Select Species" : vm.entry.species!.name
+        }
+        var baitTitle: String {
+            vm.entry.bait == nil ? "Select Bait" : vm.entry.bait!.name
+        }
+        
+        var body: some View {
+            VStack{
+                SelectorButton("Species", speciesTitle) {
+                    vm.showSpecies()
+                }
+                HStack(spacing: 12) {
+                    LargeDoubleInput(title: "Length", value: $vm.entry.length, unit: AppUnits.length)
+                    LargeDoubleInput(title: "Weight", value: $vm.entry.weight, unit: AppUnits.weight)
+                }
+                SelectorButton("Bait", baitTitle) {
+                    vm.showBaits()
+                }
+            }
+        }
+    }
+    struct EditCatchDetails: View {
+        
+        @Bindable var vm: EditEntryViewModel
+        @State private var isExpanded: Bool = true
+        
+        var body: some View {
+            TitleDrop(title: "Catch", isExpanded: $isExpanded) {
+                VStack{
+                    LargeSelector("Casting method", $vm.entry.castingMethod)
+                    HStack(spacing: 12) {
+                        LargeDoubleInput(title: "Catch depth", value: $vm.entry.catchDepth, unit: AppUnits.length)
+                        LargeDoubleInput(title: "Other depth", value: $vm.entry.catchDepth, unit: AppUnits.length)
+                    }
+                }
+            }
+        }
+    }
+    struct EditWaterDetails: View {
+        
+        @Bindable var vm: EditEntryViewModel
+        @State private var isExpanded: Bool = true
+        
+        var body: some View {
+            TitleDrop(title: "Water", isExpanded: $isExpanded) {
+                VStack{
+                    LargeSelector("Tide state", $vm.entry.tideState)
+                    HStack(spacing: 12) {
+                        LargeDoubleInput(title: "Temperature", value: $vm.entry.waterTemperature, unit: AppUnits.temperature)
+                        LargeDoubleInput(title: "Visibility", value: $vm.entry.waterVisibility, unit: AppUnits.length)
+                    }
+                    LargeSelector("Bottom type", $vm.entry.bottomType)
+                }
+            }
+        }
+    }
+}
+
+
+
+struct TitleDrop<Content:View>: View {
+    
+    let title: String
+    @Binding var isExpanded: Bool
+    var content: () -> Content
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation { isExpanded.toggle() }
+                AppHaptics.light()
+            } label: {
+                HStack(alignment: .center, spacing: 0) {
+                    Text(title)
+                        .foregroundStyle(AppColor.primary)
+                        .fontWeight(.medium)
+                        .font(.title3)
+                        .padding(.vertical,24)
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.caption)
+                        .foregroundStyle(AppColor.half)
+                        .opacity(isExpanded ? 0.0 : 1.0)
+                }
+                .background(AppColor.tone)
+            }
+            if isExpanded{
+                content()
+                    .transition(.blurReplace)
+            }
+
+        }
     }
 }
 
@@ -70,7 +279,6 @@ struct EditEntry_TopControls: View {
         HStack{
             CircleButton("chevron.left") {}
             Spacer()
-            
             CapsuleButton("plus", "Save") {}
         }
         .padding(.horizontal)
@@ -78,7 +286,6 @@ struct EditEntry_TopControls: View {
         .frame(maxHeight: .infinity, alignment: .top)
     }
 }
-
 struct EditEntry_BottomControls: View {
     var body: some View {
         HStack{
@@ -96,22 +303,44 @@ struct EditEntry_BottomControls: View {
     }
 }
 
+extension CLLocationCoordinate2D: @retroactive Equatable {
+    public static func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+        Double(lhs.latitude).roundTo(toPlaces: 4) == Double(rhs.latitude).roundTo(toPlaces: 4) &&         Double(lhs.longitude).roundTo(toPlaces: 4) == Double(rhs.longitude).roundTo(toPlaces: 4)
+        
+    }
+}
+
+struct MapLocationMark: View {
+    var body: some View {
+        Circle()
+            .fill(AppColor.dark.opacity(0.3))
+            .stroke(Color.white, lineWidth: 3)
+            .frame(width: 20,height: 20)
+    }
+}
+
 
 
 struct EditEntryMap: View {
     
+    @Bindable var vm: EditEntryViewModel
+    let initialLocation: CLLocationCoordinate2D
     @State private var cameraPosition: MapCameraPosition
-    let entryCoordinate: CLLocationCoordinate2D
-    let entryRegion: MKCoordinateRegion
+    @State private var cameraCenter: CLLocationCoordinate2D?
+    //If default location then unlimited move, eg palic or apple park.
+    //If NEW or Eidt then 5km adjustment radius
     
+    //If map center is same as the initial location only one pin
+    //If map center is not same location that fishing line view
+    //While dragged need to dipslay a map center crosshair
+    
+    //DESIGN VARIABLES
+    @State private var showCrosshair: Bool = false
     @Environment(\.colorScheme) var scheme
-    
     @State private var isSatelite: Bool = false
     var mapStyle: MapStyle {
         isSatelite ? MapStyle.hybrid(elevation: .realistic, pointsOfInterest: .excludingAll, showsTraffic: false) : MapStyle.standard(elevation: .realistic, emphasis: .automatic, pointsOfInterest: .excludingAll, showsTraffic: false)
     }
-    
-    @State private var otherCenter: CLLocationCoordinate2D?
     private let mapHeight: CGFloat = 420
     let strokeStyle = StrokeStyle(
         lineWidth: 3,
@@ -119,20 +348,14 @@ struct EditEntryMap: View {
         lineJoin: .round,
         dash: [3, 6]
     )
-        
     let gradient = Gradient(colors: [.red, .green, .blue])
     
-    init(lat: Double, lon: Double) {
-        let coordinate: CLLocationCoordinate2D = CLLocationCoordinate2D(latitude: lat, longitude: lon)
-        let delta = 0.006
-        let region: MKCoordinateRegion = MKCoordinateRegion(center: coordinate, span: .init(latitudeDelta: delta, longitudeDelta: delta))
-        self.entryCoordinate = coordinate
-        self.entryRegion = region
+    init(vm: EditEntryViewModel, initialLocation: CLLocationCoordinate2D) {
+        self.vm = vm
+        self.initialLocation = initialLocation
+        self.cameraCenter = initialLocation
         self._cameraPosition = State(initialValue: MapCameraPosition.region(
-            MKCoordinateRegion(
-                center: coordinate,
-                span: MKCoordinateSpan(latitudeDelta: delta, longitudeDelta: delta)
-            )
+            MKCoordinateRegion(center: initialLocation, span: .init(latitudeDelta: 0.001, longitudeDelta: 0.001))
         ))
     }
     
@@ -144,41 +367,52 @@ struct EditEntryMap: View {
                 
                 ZStack(alignment: .center){
                     
-                    
                     Map(position: $cameraPosition){
-                    
-                        Marker(coordinate: entryCoordinate) { Text("Catch")}
-                        
-                        if let coordinate = cameraPosition.camera?.centerCoordinate {
-                            Marker(coordinate: coordinate) { Text("Center")}
-                            let content = [coordinate,entryCoordinate]
-                            MapPolyline(coordinates: content)
-                            .stroke(gradient, style: strokeStyle)
-
+                       
+                        if vm.new {
+                            Annotation("", coordinate: initialLocation) {
+                                MapLocationMark()
+                            }
+                            
+                            
+                            if cameraCenter != nil {
+                                if initialLocation != cameraCenter {
+                                    
+                                    
+                                    let initialCL = CLLocation(latitude: initialLocation.latitude, longitude: initialLocation.longitude)
+                                    let cameraCL = CLLocation(latitude: cameraCenter!.latitude, longitude: cameraCenter!.longitude)
+                                    
+                                    let distance = initialCL.distance(from: cameraCL)
+                                    
+                                    Marker("Catch \(Int(distance))m", coordinate: cameraCenter!)
+                                        .tint(Color.white.opacity(0.65))
+                                    
+                                    let coordinates = [initialCL,cameraCL]
+                                    MapPolyline(coordinates:[initialLocation,cameraCenter!])
+                                        .stroke(gradient, style: strokeStyle)
+                                }
+                            }
+                            
                         }
-                        
-                        
-                        if let asd = otherCenter{
-                            
-                            let a1 = CLLocation(latitude: asd.latitude, longitude: asd.longitude)
-                            let a2 =  CLLocation(latitude: entryCoordinate.latitude, longitude: entryCoordinate.longitude)
-                            
-                            let dist = a1.distance(from: a2)
-                            
-                            
-                            let content = [asd,entryCoordinate]
-                            Marker(coordinate: asd) { Text("\(Int(dist))")}
-                            
-                            MapPolyline(coordinates:content)
-                            .stroke(gradient, style: strokeStyle)
 
-                        }
-                        
-                        
-                        
                     }
-                    .onMapCameraChange { context in
-                        otherCenter = context.region.center
+                    .simultaneousGesture(
+                        DragGesture()
+                            .onChanged({ drag in
+                                showCrosshair  = true
+                            })
+                            .onEnded({ drag in
+                                showCrosshair = false
+                            })
+                    )
+                    .overlay(alignment: .center, content: {
+                        if showCrosshair {
+                            Image(systemName: "plus")
+                        }
+                    })
+
+                    .onMapCameraChange(frequency: .onEnd) { context in
+                        cameraCenter = context.region.center
                     }
                     .mapStyle(mapStyle)
                     .grayscale(1.0)
@@ -201,150 +435,12 @@ struct EditEntryMap: View {
         }
         .frame(height: mapHeight)
     }
-    
-
-    
 }
-struct EditEntryContent: View {
-    @Bindable var entry: Entry
-    var body: some View {
-        VStack{
-            VStack(
-                alignment: .leading, spacing: 0
-            ) {
-                HStack{
-                    HStack{
-                        Image(systemName: "calendar")
-                        Text("June 26, 14:38")
-                    }
-                        .font(.caption)
-                        .padding(.vertical,6)
-                        .padding(.horizontal,12)
-                        .background(AppColor.secondary)
-                        .cornerRadius(30)
-                        .padding(.leading,-6)
-                    Spacer()
-                }
-                .padding(.bottom,18)
-                
-                
-                Text("New Catch")
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .padding(.bottom,24)
-                
-                
-                SelectorButton("Species", "Select Species") {}
-                
-                HStack{
-                    LargeStringInput("Length", "0 cm", .constant(""))
-                    LargeStringInput("Weight", "0 kg", .constant(""))
-                }
-                SelectorButton("Bait", "Select Bait") {
-                    
-                }
-                LargeStringInput("Notes", "Observations and details", .constant(""))
-                    .padding(.bottom,16)
-                 
-                
-                Text("Catch details")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .padding(.top,24)
-                    .padding(.bottom,24)
-                
-                //Experimental
-                LargeSelector("Casting method", $entry.castingMethod)
-                
-                HStack{
-                    LargeStringInput("Catch depth", "0 cm", .constant(""))
-                    LargeStringInput("Weight", "0 kg", .constant(""))
-                }
-                
-                Text("Water details")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .padding(.top,24)
-                    .padding(.bottom,24)
-                //Experimental
-                LargeSelector("Tide state", $entry.tideState)
-                HStack{
-                    LargeStringInput("Water temp", "0 C", .constant(""))
-                    LargeStringInput("Water visibility", "0 cm", .constant(""))
-                }
-                LargeSelector("Bottom type", $entry.bottomType)
-                
-                
-                Text("Weather")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .padding(.top,24)
-                    .padding(.bottom,24)
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack{
-                       Text("Location")
-                        Spacer()
-                        Text("15.2344, 58.2344")
-                            .textSelection(.enabled)
-                            .foregroundStyle(AppColor.half)
-                    }
-                    HStack{
-                       Text("Time of log")
-                        Spacer()
-                        Text("2025, July 15 at 14:14")
-                            .foregroundStyle(AppColor.half)
-                    }
-                    HStack{
-                       Text("Tide state")
-                        Spacer()
-                        Text("Rising")
-                            .foregroundStyle(AppColor.half)
-                    }
-                }
-                .font(.callout)
-                
-                Text("Solunar")
-                    .font(.title3)
-                    .fontWeight(.medium)
-                    .padding(.top,24)
-                    .padding(.bottom,24)
-                
-                /*
-                ViewEntryDrop(symbol: "photo", title: "Photos", isExpanded: .constant(false)) {
-                    EmptyView()
-                }
-                
-                ViewEntryDrop(symbol: "matter.logo", title: "Details", isExpanded: .constant(false)) {
-                    EmptyView()
-                }
-                ViewEntryDrop(symbol: "cloud", title: "Conditions", isExpanded: .constant(false)) {
-                    EmptyView()
-                }
-                ViewEntryDrop(symbol: "moon.stars", title: "Solunar", isExpanded: .constant(false)) {
-                    EmptyView()
-                }
-                 */
-            }
-            .padding(.bottom,AppSafeArea.edges.bottom + AppSize.buttonSize + 16)
-        }
-        .padding()
-        .background(
-            VStack(spacing: 0, content: {
-                
-                LinearGradient(
-                    colors: [
-                        AppColor.tone,
-                        AppColor.tone.opacity(0.75),
-                        AppColor.tone.opacity(0.0)
-                    ],
-                    startPoint: .bottom, endPoint: .top)
-                    .frame(height: 50)
-                 
-                AppColor.tone
-            })
-        )
-        
+
+extension Double {
+    func roundTo(toPlaces places: Int) -> Double {
+        let multiplier = pow(10.0, Double(places))
+        return (self * multiplier).rounded() / multiplier
     }
 }
 
@@ -353,20 +449,24 @@ struct EditEntryContent: View {
 #if DEBUG
 struct EditEntry_PreviewWrapper: View {
     
+    @Environment(\.modelContext) var context
     @Query var entries: [Entry]
     @State private var newEntry: Entry?
+    @State private var location: CLLocation?
     
     var body: some View {
         ZStack{
             if newEntry != nil {
-                EditEntry(entry: newEntry!, newEntry: true) {
-                    print("back")
+                if location != nil {
+                    EditEntry(context: context, location: location!, entry: newEntry!, newEntry: true) {
+                    }
                 }
             }
         }
         .onAppear {
             LocationManager.shared.requestAuthorization()
             LocationManager.shared.getCurrentLocation { location in
+                self.location = location
                 newEntry = Entry(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
             }
         }
@@ -380,39 +480,4 @@ struct EditEntry_PreviewWrapper: View {
         .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
 }
 #endif
-
-
-struct Mappp: View {
-    let coordinates = [
-        CLLocationCoordinate2D(latitude: 37.3347, longitude: -122.0089),
-        CLLocationCoordinate2D(latitude: 37.3358, longitude: -122.0089),
-        CLLocationCoordinate2D(latitude: 37.3359, longitude: -122.0089)
-    ]
-
-    let strokeStyle = StrokeStyle(
-        lineWidth: 3,
-        lineCap: .round,
-        lineJoin: .round,
-        dash: [5, 5]
-    )
-        
-    let gradient = Gradient(colors: [.red, .green, .blue])
-    
-    var body: some View {
-        Map(initialPosition: .region(
-            MKCoordinateRegion(
-                center: CLLocationCoordinate2D(latitude: 37.3353, longitude: -122.0089),
-                span: MKCoordinateSpan(latitudeDelta: 0.002, longitudeDelta: 0.002)
-            )
-        )) {
-            MapPolyline(coordinates: coordinates)
-                .stroke(gradient, style: strokeStyle)
-
-            ForEach(coordinates, id: \.latitude) { coord in
-                Marker("Point", coordinate: coord)
-            }
-        }
-        .frame(height: 400)
-    }
-}
 

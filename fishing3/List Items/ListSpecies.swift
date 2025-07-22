@@ -8,31 +8,7 @@
 import SwiftUI
 import SwiftData
 
-enum ListOrders: String, Selectable {
-    case recents, lastAdded, forward, reverse
-    var id: String {self.rawValue}
-    var label: String {
-        switch self {
-        case .recents: return "Recents"
-        case .lastAdded: return "Last Added"
-        case .forward: return "A-Z"
-        case .reverse: return "Z-A"
-        }
-    }
-    var shortLabel: String {
-        self.label
-    }
-    var symbolName: String {
-        switch self {
-        case .recents: return "cursorarrow.click.badge.clock"
-        case .lastAdded: return "plus.arrow.trianglehead.clockwise"
-        case .forward: return "arrowshape.forward.circle"
-        case .reverse: return "arrowshape.backward.circle"
-        }
-    }
-    
-}
-enum ListModes { case select, edit }
+
 
 @Observable
 class ListSpeciesViewModel {
@@ -78,6 +54,8 @@ class ListSpeciesViewModel {
         self.mode = mode
         self.viewTitle = mode == .edit ? "All Species" : "Select Species"
         self.backAction = backAction
+        
+        self.orderedSpecies = allSpecies
     }
     
     func updateSort(order: ListOrders) {
@@ -280,6 +258,7 @@ struct ListSpecies: View {
             .onTapGesture {
                 if mode == .select {
                     selectedSpecies = species
+                    vm.backAction()
                     AppHaptics.light()
                 } else {
                     vm.showEditOverlay(species)
@@ -321,72 +300,6 @@ struct ListSpecies: View {
     }
 
 }
-
-struct ListModifier: ViewModifier {
-    func body(content: Content) -> some View {
-        content
-            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
-            .listRowSpacing(0)
-            .listRowBackground(AppColor.tone)
-            .listRowSeparator(.hidden)
-        
-    }
-}
-struct ListTopSpacer: View {
-    var body: some View {
-        Spacer().frame(
-            height: AppSafeArea.edges.top + AppSize.buttonSize + 32
-        )
-            .modifier(ListModifier())
-    }
-}
-struct ListBottomSpacer: View {
-    var body: some View {
-        Spacer().frame(
-            height: AppSafeArea.edges.bottom + AppSize.buttonSize + 32
-        )
-            .modifier(ListModifier())
-    }
-}
-struct ListTitle: View {
-    let title: String
-    let count: Int?
-    var body: some View {
-        HStack(alignment: .firstTextBaseline){
-            Text(title)
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundStyle(AppColor.primary)
-            Spacer()
-            if let number = count {
-                Text("\(number)")
-                    .font(.callout2)
-                    .foregroundStyle(AppColor.half)
-            }
-        }
-    }
-}
-struct ListTopBlocker: View {
-    var body: some View {
-        LinearGradient(colors: [
-            AppColor.tone,AppColor.tone.opacity(0.65),Color.clear
-        ],startPoint: .top, endPoint: .bottom)
-        .frame(height: 112)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .allowsHitTesting(false)
-    }
-}
-struct ListBottomBlocker: View {
-    var body: some View {
-        LinearGradient(colors: [
-            AppColor.tone,AppColor.tone.opacity(0.9),Color.clear
-        ],startPoint: .bottom, endPoint: .top)
-        .frame(height: 112)
-        .frame(maxHeight: .infinity, alignment: .bottom)
-        .allowsHitTesting(false)
-    }
-}
-
 
 
 

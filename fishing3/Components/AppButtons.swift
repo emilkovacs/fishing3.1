@@ -9,8 +9,6 @@ import SwiftUI
 
 
 
-
-
 //MARK: - BUTTONS
 
 struct CircleButton: View {
@@ -310,6 +308,119 @@ struct LargeStringVerticalInput: View {
 }
 
 
+//Numer filed
+
+struct LargeDoubleInput: View {
+    
+    
+    let title: String
+    @Binding var value: Double?
+    let unit: String
+    var prompt: String { "0 \(unit)" }
+    
+    @FocusState var focused: Bool
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text(title)
+                .padding(.bottom,8)
+                .foregroundStyle(AppColor.half)
+                .font(.callout2)
+                .fontWeight(.medium)
+            NumberField(value: $value, title: title, prompt: prompt)
+                .focused($focused)
+                .fontWeight(.medium)
+                .font(.headline)
+            
+                .overlay(alignment: .leading) {
+                    HStack(spacing:0){
+                        if !focused && value != nil {
+                            if value == nil {
+                                Text(prompt)
+                                    .opacity(0.0)
+                            } else {
+                                Text(AppFormatter.numberInput.string(from: value == nil ? 0 : value! as NSNumber) ?? "0")
+                                    .opacity(0.0)
+                            }
+                            Text(" \(unit)")
+                                .foregroundStyle(AppColor.half)
+                        }
+                    }
+                    .fontWeight(.medium)
+                }
+
+
+                
+            
+            Divider().padding(.vertical,16)
+        }
+    }
+}
+
+struct NumberField: View {
+    
+    //Creates a "root" type like textfield, but can be used for numbers. :)
+    
+    @Binding var value: Double?
+    var title: String
+    var prompt: String
+    
+    @State private var text: String = ""
+    @FocusState private var isFocused: Bool
+    let defaultValue: String = ""
+    
+    var body: some View {
+        TextField(title, text: $text, prompt: Text(prompt))
+            .keyboardType(.numbersAndPunctuation)
+            .autocorrectionDisabled()
+            .scrollDismissesKeyboard(.immediately)
+        
+            .focused($isFocused)
+            .onAppear {
+                text = value.flatMap { AppFormatter.numberInput.string(from: NSNumber(value: $0)) } ?? defaultValue
+            }
+            .onChange(of: isFocused) { _ , focused in
+                if focused {
+                    if text == defaultValue {
+                        text = ""
+                    }
+                } else {
+                    let cleaned = sanitizeInput(text)
+                    if let number = AppFormatter.numberInput.number(from: cleaned) {
+                        value = number.doubleValue
+                    } else {
+                        value = nil
+                    }
+                    text = value
+                        .flatMap { AppFormatter.numberInput.string(from: NSNumber(value: $0)) }
+                        ?? defaultValue
+                }
+            }
+        
+    }
+    
+    private func sanitizeInput(_ input: String) -> String {
+        let decimalSeparator = AppFormatter.numberInput.decimalSeparator ?? "."
+        var allowed = CharacterSet.decimalDigits
+        allowed.insert(charactersIn: decimalSeparator)
+
+        var sanitized = input
+            .replacingOccurrences(of: ".", with: decimalSeparator)
+            .replacingOccurrences(of: ",", with: decimalSeparator)
+
+        sanitized = sanitized.components(separatedBy: allowed.inverted).joined()
+
+        if let first = sanitized.firstIndex(of: Character(decimalSeparator)) {
+            let before = sanitized[..<sanitized.index(after: first)]
+            let after = sanitized[sanitized.index(after: first)...].replacingOccurrences(of: decimalSeparator, with: "")
+            sanitized = before + after
+        }
+
+        return sanitized
+    }
+}
+
+
 //Selector
 struct CircleSelector<T:Selectable>: View {
     let symbol: String
@@ -420,6 +531,7 @@ struct AppButtons_PreviewWrapper: View {
     @State private var largeString: String = ""
     @State private var notesString: String = ""
     @State private var speciesWater: SpeciesWater = .unknown
+    @State private var doubleValue: Double?
     
     var body: some View {
         ZStack{
@@ -439,6 +551,10 @@ struct AppButtons_PreviewWrapper: View {
                     
                     LargeStringInput("Name", "Unique Name", $largeString)
                         .padding()
+                    
+                    LargeDoubleInput(title: "Weight", value: $doubleValue, unit: "cm")
+                        .padding()
+                    
                     SelectorButton("Species", "Carp") {
                         
                     }

@@ -1,24 +1,24 @@
 //
-//  EditSpecies.swift
+//  EditBait.swift
 //  fishing3
 //
-//  Created by Emil Kovács on 17. 7. 2025..
+//  Created by Emil Kovács on 18. 7. 2025..
 //
 
 import SwiftUI
 import SwiftData
+import PhotosUI
 
-
-struct EditSpecies: View {
+struct EditBait: View {
     
     @Environment(\.modelContext) var context
     
-    @Bindable var species: Species
+    @Bindable var bait: Bait
     var new: Bool
     var backAction: () -> Void
     
     var title: String {
-        new ? "New Species" : "Edit Species"
+        new ? "New Bait" : "Edit Bait"
     }
     
     @State private var alertDisplay: Bool = false
@@ -29,16 +29,19 @@ struct EditSpecies: View {
         ZStack{
             ScrollView{
                 VStack(alignment: .leading, spacing: 0) {
-                    
                     Text(title)
                         .font(.title)
                         .fontWeight(.medium)
                         .padding(.bottom,32)
                     
-                    LargeStringInput("Name", "Unique Name", $species.name)
-                    LargeSelector("Water", $species.water)
-                    LargeSelector("Behaviour", $species.behaviour)
+                    LargeStringInput("Name", "Unique Name", $bait.name)
+                    LargeSelector("Type", $bait.type)
+                    LargeSelector("Position", $bait.position)
+                    LargeStringVerticalInput("Notes", "Optional notes", $bait.notes)
+                
+                    
                     bottomControls
+
                 }
                 .padding(.horizontal)
                 .padding(.top,64+16)
@@ -56,7 +59,7 @@ struct EditSpecies: View {
         HStack{
             CircleButton("chevron.left") { back() }
             Spacer()
-            CircleButton(species.star ? "star.fill" : "star") { species.star.toggle() }
+            CircleButton(bait.star ? "star.fill" : "star") { bait.star.toggle() }
         }
         .padding(.horizontal)
         .padding(.top,AppSafeArea.edges.top)
@@ -86,13 +89,13 @@ struct EditSpecies: View {
     
     func delete(){
         withAnimation {
-            context.delete(species)
+            context.delete(bait)
         }
         
         do {
             try context.save()
         } catch {
-            alertUser("Error", "Failed to delete or save species.")
+            alertUser("Error", "Failed to delete or save bait.")
         }
         
         backAction()
@@ -103,34 +106,34 @@ struct EditSpecies: View {
         do {
             try context.save()
         } catch {
-            alertUser("Error", "Failed to save species.")
+            alertUser("Error", "Failed to save bait.")
         }
         
         backAction()
     }
     func saveOrCreate(){
         //Normalize name
-        species.name = species.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        bait.name = bait.name.trimmingCharacters(in: .whitespacesAndNewlines)
         
         //Empty name check
-        guard !species.name.isEmpty else {
-            alertUser("Empty Name", "Give your species a name.")
+        guard !bait.name.isEmpty else {
+            alertUser("Empty Name", "Give your bait a name.")
             return
         }
         
-        let nameToCheck = species.name
+        let nameToCheck = bait.name
 
-        let descriptor = FetchDescriptor<Species>(
+        let descriptor = FetchDescriptor<Bait>(
             predicate: #Predicate { $0.name == nameToCheck }
         )
 
         do {
-            let matchingSpecies = try context.fetch(descriptor)
+            let matchingBaits = try context.fetch(descriptor)
 
-            let isDuplicate = matchingSpecies.contains { $0.id != species.id }
+            let isDuplicate = matchingBaits.contains { $0.id != bait.id }
 
             if isDuplicate {
-                alertUser("Duplicate Name", "Give your species a unique name.")
+                alertUser("Duplicate Name", "Give your bait a unique name.")
                 return
             }
         } catch {
@@ -140,16 +143,16 @@ struct EditSpecies: View {
         
         //Save and insert if needed
         if new {
-            context.insert(species)
+            context.insert(bait)
         } else {
-            // Update timestamp to be at the top of last added. :) 
-            species.timestamp = Date()
+            //Update timestamp to be on top again.
+            bait.timestamp = Date()
         }
         
         do {
             try context.save()
         } catch {
-            alertUser("Error", "Failed to save species.")
+            alertUser("Error", "Failed to save bait.")
         }
         
         //Close view
@@ -161,19 +164,20 @@ struct EditSpecies: View {
 
 
 #if DEBUG
-struct EditSpecies_PreviewWrapper: View {
+struct EditBait_PreviewWrapper: View {
     
-    @Query var species: [Species]
+    @Query var baits: [Bait]
+    @State private var bait: Bait = Bait("Trailing", .fly, .midwater, "")
     
     var body: some View {
-        EditSpecies(species: species[3], new: false) {
+        EditBait(bait: bait, new: true) {
             print("bck")
         }
     }
 }
 
 #Preview {
-    EditSpecies_PreviewWrapper()
+    EditBait_PreviewWrapper()
         .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
 }
 #endif

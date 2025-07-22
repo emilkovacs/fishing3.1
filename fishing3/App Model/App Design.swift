@@ -43,12 +43,25 @@ struct AppUnits {
     
     static let weight: String = usesMetric ? "kg" : "lb"
     static let length: String = usesMetric ? "cm" : "in"
+    static let lengthLarge: String = usesMetric ? "m" : "ft"
+    static let temperature: String = usesMetric ? "C" : "F"
     
 }
     
 
 extension Font {
     static let callout2: Font = .system(size: 14)
+}
+
+
+struct AppFormatter{
+    static var numberInput: NumberFormatter = {
+        let f = NumberFormatter()
+        f.numberStyle = .decimal
+        f.maximumFractionDigits = 1
+        f.locale = Locale.current
+        return f
+    }()
 }
 
 

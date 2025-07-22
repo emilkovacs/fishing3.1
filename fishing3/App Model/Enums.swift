@@ -77,19 +77,7 @@ enum BaitPosition: String, Selectable {
     
 }
 
-enum BaitGroup: String, Selectable {
-    case none, type, position
-    var id: String {self.rawValue}
-    var label: String {
-        switch self {
-        case .none: return "None"
-        case .type: return "Type"
-        case .position: return "Position"
-        }
-    }
-    var shortLabel: String {self.label}
-    var symbolName: String {"circle"}
-}
+
 
 //MARK: - SPECIES
 /// Enums connected to species for data categorization.
@@ -143,22 +131,34 @@ enum SpeciesBehaviour: String, Selectable {
     }
 }
 
-enum SpeciesGroup: String, Selectable {
-    case none, water, behaviour
+
+//MARK: - LIST AND EDIT
+
+enum ListOrders: String, Selectable {
+    case recents, lastAdded, forward, reverse
     var id: String {self.rawValue}
-    
     var label: String {
         switch self {
-        case .none: return "None"
-        case .water: return "Water"
-        case .behaviour: return "Behaviour"
+        case .recents: return "Recents"
+        case .lastAdded: return "Last Added"
+        case .forward: return "A-Z"
+        case .reverse: return "Z-A"
         }
     }
-    var shortLabel: String {self.label}
-    var symbolName: String {"circle"}
-    
+    var shortLabel: String {
+        self.label
+    }
+    var symbolName: String {
+        switch self {
+        case .recents: return "cursorarrow.click.badge.clock"
+        case .lastAdded: return "plus.arrow.trianglehead.clockwise"
+        case .forward: return "arrowshape.forward.circle"
+        case .reverse: return "arrowshape.backward.circle"
+        }
+    }
     
 }
+enum ListModes { case select, edit }
 
 
 //MARK: - DETAILS

@@ -11,6 +11,8 @@ import SwiftUI
 
 // MARK: - RENOVATION
 
+// AC Guy after 10
+
 /// Measure the WC ceiling's [nedvesseg]
 /// Ping EuroPVC for windows -> When to destruct the windows in the kitchen.
 /// Destruct the red room's doorframe.
@@ -18,10 +20,7 @@ import SwiftUI
 
 
 /// Final budget for renovation to order.
-/// Decide and ping AC guy.
 
-
-/// [x] Flat community ping for a hoa meeting.
 /// Find someone from the apt. next door to get the info for the construction company.
 
 
@@ -31,8 +30,6 @@ import SwiftUI
 // Ask mother about Sogor & Denes's money, + Treadmill.
 
 /// Schedule fishing meet
-
-
 
 
 
