@@ -46,11 +46,16 @@ struct AppUnits {
     static let lengthLarge: String = usesMetric ? "m" : "ft"
     static let temperature: String = usesMetric ? "C" : "F"
     
+    static let pressure: String = usesMetric ? "hPA" : "IDK"
+    static let humidity: String = "%"
+    static let rain: String = usesMetric ? "mm" : "IDK"
+    static let windspeed: String = usesMetric ? "kmh" : "mph"
 }
     
 
 extension Font {
     static let callout2: Font = .system(size: 14)
+    static let title1: Font = .system(size: 26)
 }
 
 
@@ -62,6 +67,22 @@ struct AppFormatter{
         f.locale = Locale.current
         return f
     }()
+    
+    static let dayAndTimeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.setLocalizedDateFormatFromTemplate("MMMMd, HH:mm")
+        return formatter
+    }()
+    
+    static func dayAndTime(_ date: Date) -> String {
+        return AppFormatter.dayAndTimeFormatter.string(from: date)
+    }
+    
+    static func time(_ date:Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: date)
+    }
 }
 
 

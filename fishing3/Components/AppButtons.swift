@@ -525,6 +525,20 @@ func animatePress(scale: Binding<CGFloat>) {
 }
 
 #if DEBUG
+
+struct PreviewLabel:View {
+    let text: String
+    var body: some View {
+        Text("// \(text)")
+            .font(.caption2)
+            .fontDesign(.monospaced)
+    }
+    
+    init(_ text: String) {
+        self.text = text
+    }
+}
+
 struct AppButtons_PreviewWrapper: View {
     
     @State private var filterString: String = ""
@@ -547,30 +561,34 @@ struct AppButtons_PreviewWrapper: View {
                         CircleSelector(symbol: "circle", selection: $speciesWater)
                         
                     }
-                    .padding(.horizontal)
                     
+                    Spacer().frame(height: 64)
+                    
+                    PreviewLabel("Large String Input")
                     LargeStringInput("Name", "Unique Name", $largeString)
-                        .padding()
-                    
+                        
+                    PreviewLabel("Large Double Input")
                     LargeDoubleInput(title: "Weight", value: $doubleValue, unit: "cm")
-                        .padding()
-                    
+                    PreviewLabel("Large String Vertical Input")
+                    LargeStringVerticalInput("Notes", "Notes", $notesString, limit: 120)
+                        
+                    PreviewLabel("Selector Button")
                     SelectorButton("Species", "Carp") {
                         
                     }
-                    .padding()
+                    PreviewLabel("Large Selector")
                     LargeSelector("Water", $speciesWater)
-                        .padding()
+                        
                     
                     
-                    LargeStringVerticalInput("Notes", "Notes", $notesString, limit: 120)
-                        .padding()
+
+                        
                     
                     SearchBar(filterString: $filterString, prompt: "Search things")
                     
                     HStack{Spacer()}
                 }
-                
+                .padding(.horizontal)
             }
             .scrollIndicators(.hidden)
         }

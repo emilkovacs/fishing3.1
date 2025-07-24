@@ -9,6 +9,28 @@
 import SwiftUI
 
 
+//MARK: - RENOVATION
+
+// @Morning, AC guy ping
+// @Afternoon widows finish, drill + attach window panes
+// Buy angle profiles
+
+
+//MARK: - WORK
+
+// Emil App
+// Dorka Design + Sogor ping
+
+//MARK: - FOOD
+
+// Breakfast ->  Ham & eggs.
+// Lunch -> Grandma
+// Dinner -> Beans
+
+
+
+
+
 // MARK: - RENOVATION
 
 // AC Guy after 10

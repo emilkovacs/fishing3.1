@@ -303,12 +303,7 @@ struct EditEntry_BottomControls: View {
     }
 }
 
-extension CLLocationCoordinate2D: @retroactive Equatable {
-    public static func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
-        Double(lhs.latitude).roundTo(toPlaces: 4) == Double(rhs.latitude).roundTo(toPlaces: 4) &&         Double(lhs.longitude).roundTo(toPlaces: 4) == Double(rhs.longitude).roundTo(toPlaces: 4)
-        
-    }
-}
+
 
 struct MapLocationMark: View {
     var body: some View {
@@ -413,6 +408,7 @@ struct EditEntryMap: View {
 
                     .onMapCameraChange(frequency: .onEnd) { context in
                         cameraCenter = context.region.center
+                        
                     }
                     .mapStyle(mapStyle)
                     .grayscale(1.0)

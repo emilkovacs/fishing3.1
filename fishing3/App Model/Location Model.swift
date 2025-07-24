@@ -7,7 +7,7 @@
 
 import Foundation
 import CoreLocation
-
+import SwiftUI
 
 class LocationManager: NSObject, CLLocationManagerDelegate {
     
@@ -74,3 +74,47 @@ class LocationManager: NSObject, CLLocationManagerDelegate {
         locationCompletion = nil
     }
 }
+
+extension CLLocationCoordinate2D: @retroactive Equatable {
+    public static func == (lhs: CLLocationCoordinate2D, rhs: CLLocationCoordinate2D) -> Bool {
+        Double(lhs.latitude).roundTo(toPlaces: 4) == Double(rhs.latitude).roundTo(toPlaces: 4) && Double(lhs.longitude).roundTo(toPlaces: 4) == Double(rhs.longitude).roundTo(toPlaces: 4)
+        
+    }
+}
+
+
+//Map Components
+struct MapColorFade: View {
+    
+    var body: some View {
+        LinearGradient(
+            colors: [AppColor.tone,AppColor.tone.opacity(0.65),Color.clear],
+            startPoint: .bottom,
+            endPoint: .top)
+            .frame(height: 64)
+            .frame(maxHeight: .infinity, alignment: .bottom)
+    }
+}
+struct MapColorCorrections: View {
+    @Environment(\.colorScheme) var colorScheme
+    var isSatelite: Bool
+    
+    var body: some View {
+        if colorScheme == .dark {
+            Rectangle()
+                .fill(AppColor.dark.opacity(isSatelite ? 0.4 : 0.55))
+                .blendMode(.overlay)
+                .allowsHitTesting(false)
+        }
+    }
+}
+struct MapMarker: View {
+    var body: some View {
+        Circle()
+            .fill(AppColor.primary.opacity(0.25))
+            .stroke(Color.white, lineWidth: 3)
+            .frame(width: 22, height: 22, alignment: .center)
+    }
+}
+
+
