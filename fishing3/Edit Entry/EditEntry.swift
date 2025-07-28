@@ -24,11 +24,11 @@ class EditEntryViewModel {
     var locationCoordinate: CLLocation?
     
     //View controls
-    var listSpecies: Bool = false
-    var listBaits: Bool = false
-    var moreDetails: Bool = false
-    var weatherDetails: Bool = false
-    var photoManager: Bool = false
+    var showListSpecies: Bool = false
+    var showListBaits: Bool = false
+    var showMoreDetails: Bool = false
+    var showWeatherDetails: Bool = false
+    var showPhotoManager: Bool = false
     var viewTitle: String
     
     
@@ -36,13 +36,21 @@ class EditEntryViewModel {
     var alertDisplay: Bool = false
     var alertTitle: String = ""
     var alertMessage: String = ""
-    
     func showAlert(_ title: String, _ message: String){
         alertTitle = title
         alertMessage = message
         alertDisplay = true
     }
     
+    
+    //Photo variables
+    var pickedPhotos: [PhotosPickerItem] = []
+    var photos: [UIImage] = []
+    var maxPhotos: Int = 5
+    var photosRemaining: Int { maxPhotos - photos.count }
+    var photosEnabled: Bool {
+        photos.count < maxPhotos + 1
+    }
     
     init(context: ModelContext,entry: Entry, new: Bool, weather: EntryWeather? = nil, location: CLLocation, backAction: @escaping () -> Void) {
         self.context = context
@@ -68,21 +76,54 @@ class EditEntryViewModel {
     //View functions
     
     func showDetails(){
-        withAnimation { moreDetails.toggle() }
+        withAnimation { showMoreDetails.toggle() }
     }
     
     func showSpecies(){
-        withAnimation { listSpecies = true }
+        withAnimation { showListSpecies = true }
     }
     func hideSpecies(){
-        withAnimation { listSpecies = false }
+        withAnimation { showListSpecies = false }
     }
     func showBaits(){
-        withAnimation { listBaits = true }
+        withAnimation { showListBaits = true }
     }
     func hideBaits(){
-        withAnimation { listBaits = false }
+        withAnimation { showListBaits = false }
     }
+    
+    //Context functions
+    func saveContext(){
+        
+        //Check for if species is set
+        guard entry.species != nil else {
+            showAlert("Set Species", "To saveContext the catch set the species.")
+            return
+        }
+        
+        //check for it it's new
+        if new {
+            //generate new uuid to be sure
+            entry.id = UUID()
+            //insert to context
+            context.insert(entry)
+        }
+    
+        do {
+            try context.save()
+        } catch {
+            showAlert("Failed to Save", "Failed to save catch.")
+            return
+        }
+    
+        backAction()
+        
+    }    
+    func backContext(){
+        context.rollback()
+        backAction()
+    }
+    
     
     
 }
@@ -115,26 +156,32 @@ struct EditEntry: View {
             EditEntry_TopControls()
             
             //Overlays
-            if vm.moreDetails {
+            if vm.showMoreDetails {
                 EditEntryDetails(entry: vm.entry) {
-                    withAnimation { vm.moreDetails.toggle() }
+                    withAnimation { vm.showMoreDetails.toggle() }
                 }
                 .transition(.blurReplace)
+            }
+            
+            if vm.showPhotoManager {
+                PhotoManager(photos: $vm.photos) {
+                    vm.showPhotoManager.toggle()
+                }
             }
              
             
-            if vm.weatherDetails {
+            if vm.showWeatherDetails {
                 EditEntryWeather(entryWeather: vm.entry.weather) {
-                    vm.weatherDetails.toggle()
+                    vm.showWeatherDetails.toggle()
                 }
                 .transition(.blurReplace)
             }
             
-            if vm.listSpecies{
+            if vm.showListSpecies{
                 ListSpecies(mode: .select, selectedSpecies: $vm.entry.species, context: context) { vm.hideSpecies() }
                     .transition(.blurReplace)
             }
-            if vm.listBaits{
+            if vm.showListBaits{
                 ListBaits(mode: .select, selectedBait: $vm.entry.bait, context: context) { vm.hideBaits()}
                     .transition(.blurReplace)
             }
@@ -191,15 +238,44 @@ struct EditEntry_Header: View {
                 .padding(.top,16)
         }
         .overlay(alignment: .bottomTrailing) {
-            RoundedRectangle(cornerRadius: 15)
-                .fill(AppColor.button)
-                .frame(width: 80, height: 120)
-                .opacity(0.5)
+            PhotoManagerButtonEdit()
         }
         .padding(.bottom,32)
         
     }
 }
+
+struct PhotoManagerButtonEdit: View {
+    @Environment(EditEntryViewModel.self) var vm
+    var body: some View {
+        if !vm.photos.isEmpty {
+            if let photo = vm.photos.first {
+                Button {
+                    AppHaptics.light()
+                    withAnimation {
+                        vm.showPhotoManager.toggle()
+                    }
+                } label: {
+                    Image(uiImage: photo)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 80, height: 120)
+                        .cornerRadius(10)
+                        .overlay(alignment: .topTrailing) {
+                            let count = vm.photos.count
+                            if count > 1 {
+                                Text("\(count)")
+                                    .foregroundStyle(Color.white)
+                            }
+                        }
+                }
+
+            }
+        }
+    }
+}
+
+
 struct EditMainDetails: View {
     @Bindable var vm: EditEntryViewModel
     
@@ -235,11 +311,13 @@ struct EditEntry_TopControls: View {
     @Environment(EditEntryViewModel.self) var vm
     var body: some View {
         HStack{
-            CircleButton("chevron.left") {}
+            CircleButton("chevron.left") {
+                vm.backContext()
+            }
             if let weather = vm.entry.weather {
                 CapsuleButton(weather.condition_symbol, "\(Int(weather.temp_current))\(AppUnits.temperature)") {
                     withAnimation {
-                        vm.weatherDetails.toggle()
+                        vm.showWeatherDetails.toggle()
                     }
                 }
             } else {
@@ -251,7 +329,9 @@ struct EditEntry_TopControls: View {
             Spacer()
             
             
-            TextButton("Save") {}
+            TextButton("Save") {
+                vm.saveContext()
+            }
         }
         .padding(.horizontal)
         .padding(.top,AppSafeArea.edges.top)
@@ -262,9 +342,6 @@ struct EditEntry_BottomControls: View {
     
     @Bindable var vm: EditEntryViewModel
     
-    @State private var pickedPhotos: [PhotosPickerItem] = []
-    @State private var images: [UIImage] = []
-    
     var body: some View {
         HStack{
             CircleButton("ellipsis") {
@@ -273,20 +350,35 @@ struct EditEntry_BottomControls: View {
             
             Spacer()
             
-            PhotosPicker(selection: $pickedPhotos, maxSelectionCount: 4, matching: .any(of: [.images,.not(.screenshots),.not(.panoramas)])) {
-                CircleLabel(symbol: "photo")
-            }
-            .onChange(of: pickedPhotos) { _, _ in
-                images.removeAll()
-                Task {
-                    for item in pickedPhotos {
-                        if let data = try? await item.loadTransferable(type: Data.self)
-                            ,let uiImage = UIImage(data: data) {
-                            images.append(uiImage)
+            
+            if vm.photosEnabled {
+                PhotosPicker(selection: $vm.pickedPhotos, maxSelectionCount: vm.photosRemaining, matching: .any(of: [.images,.not(.screenshots),.not(.panoramas)])) {
+                    CircleLabel(symbol: "photo")
+                }
+                .buttonStyle(ActionButtonStyle({
+                    AppHaptics.light()
+                }))
+                .onChange(of: vm.pickedPhotos) { _, _ in
+                    Task { @MainActor in
+                        for item in vm.pickedPhotos {
+                            if let data = try? await item.loadTransferable(type: Data.self)
+                                ,let uiImage = UIImage(data: data) {
+                                vm.photos.append(uiImage)
+                            } else {
+                                print("fuck")
+                            }
                         }
+                        vm.pickedPhotos = []
                     }
+                    print("\(vm.photos.count) remains\(vm.photosRemaining),\(vm.photosEnabled)")
+                }
+            } else {
+                CircleButton("photo") {
+                    vm.showAlert("Max 5 photos.", "To ensure performance max 5 photos.")
                 }
             }
+            
+
             
             CapsuleButton("camera.fill", "Camera") {}
             
