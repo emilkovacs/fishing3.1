@@ -2,80 +2,51 @@
 //  Notes.swift
 //  fishing3
 //
-//  Created by Emil Kovács on 16. 7. 2025..
+//  Created by Emil Kovács on 24. 7. 2025..
 //
 
 
-import SwiftUI
-
-
-//MARK: - RENOVATION
-
-// @Morning, AC guy ping
-// @Afternoon widows finish, drill + attach window panes
-// Buy angle profiles
-
-
-//MARK: - WORK
-
-// Emil App
-// Dorka Design + Sogor ping
-
-//MARK: - FOOD
-
-// Breakfast ->  Ham & eggs.
-// Lunch -> Grandma
-// Dinner -> Beans
-
-
-
-
-
-// MARK: - RENOVATION
-
-// AC Guy after 10
-
-/// Measure the WC ceiling's [nedvesseg]
-/// Ping EuroPVC for windows -> When to destruct the windows in the kitchen.
-/// Destruct the red room's doorframe.
-/// @R Cerna will come on Monday,Tuesday
-
-
-/// Final budget for renovation to order.
-
-/// Find someone from the apt. next door to get the info for the construction company.
-
-
-
-//MARK: - LIFE
-
-// Ask mother about Sogor & Denes's money, + Treadmill.
-
-/// Schedule fishing meet
-
-
-
-//MARK: - APP
-
-// Larger dropdowns for everyhting
-// Photos from manager, besides the title area.
-// All text should be a bit smaller, regular is too large
-// Inline weather informations
-// List species bait instead of grouping use Recents from top N, - AZ, ZA
-// I need to make a nice solunar chart. akjhdfs
-
-
-
-// MARK: - DORKA STUFF
-
-/// `Packaging finish`
-
-
-
-// MARK: - EMIL WORK
-
-/// Fishing app screen, finish the view,
-/// Recreate add screen with all flows and logic.
+//@Work
+/// Schedule Fishing meet for early next week.
+/// Look up instagram options. --> Let's start Manually. @Dorka, ok? 3-4 accounts a day ...
+/// Dev the screens.
 ///
-/// Evening: Fishing instagram setup
 
+//@App
+/// Lift the details to a new view to create a cleaner screen,
+/// lift weather and solunar to a new view.
+/// Where can i delete a catch? :D --> List action + Context menu, buut on the edit screen?
+/// Maybe merge catch&Water to a details and stay inline with alternate looking dropdown headings? There are lots of line in the design ..
+/// It's more work but it's more logical to have the weathear and solunar things in a new view since they are read only and not editable. A type focused minimal view will do it i can always refreactor it later since it;s not connected deeply to logic flow.
+
+
+
+/// Leave iCloud sync for now.
+///
+///
+/// Full screen photo manager will be great
+/// Charts and List/Map will be beautiful, even with a fucking year picker.
+/// Ideate on a share screen? That's it.
+/// After that Paywall timeeee.
+
+//@Reno & Others
+/// Get XPS and bloodwork from Martonos.
+
+
+//@Corsepice
+
+
+/// [TASK A]
+/// Will be ok, go on the right side focued design.
+/// There is a 90% finished design in Figma named just "Corspice" why how?
+/// Merge the right side desing with the alt "older" design's iconography and we will be ready. ;)
+
+/// [TASK B]
+/// Organize figma make Attrakt/Corespice separate teams or what the fucks are thoose on the sidebar
+/// Merge personal, Sogor, old projects everything else.
+/// Currenty active new projects should have a white icon.
+///
+
+/// [TASK C]
+/// Ping mother in law to check bank for Sogor, act as needed after.
+///

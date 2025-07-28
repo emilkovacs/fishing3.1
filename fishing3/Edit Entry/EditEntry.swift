@@ -8,15 +8,9 @@
 import SwiftUI
 import SwiftData
 import MapKit
-
+import PhotosUI
 
 //Creates or edits an entry.
-
-//Map
-//Main
-//Details
-//Conditions
-//Solunar
 
 @Observable
 class EditEntryViewModel {
@@ -32,7 +26,23 @@ class EditEntryViewModel {
     //View controls
     var listSpecies: Bool = false
     var listBaits: Bool = false
+    var moreDetails: Bool = false
+    var weatherDetails: Bool = false
+    var photoManager: Bool = false
     var viewTitle: String
+    
+    
+    //Alert controls
+    var alertDisplay: Bool = false
+    var alertTitle: String = ""
+    var alertMessage: String = ""
+    
+    func showAlert(_ title: String, _ message: String){
+        alertTitle = title
+        alertMessage = message
+        alertDisplay = true
+    }
+    
     
     init(context: ModelContext,entry: Entry, new: Bool, weather: EntryWeather? = nil, location: CLLocation, backAction: @escaping () -> Void) {
         self.context = context
@@ -56,6 +66,11 @@ class EditEntryViewModel {
     }
     
     //View functions
+    
+    func showDetails(){
+        withAnimation { moreDetails.toggle() }
+    }
+    
     func showSpecies(){
         withAnimation { listSpecies = true }
     }
@@ -82,6 +97,7 @@ struct EditEntry: View {
     
     var body: some View {
         ZStack{
+            //Content
             ScrollView{
                 if vm.locationCoordinate != nil {
                     EditEntryMap(
@@ -89,15 +105,30 @@ struct EditEntry: View {
                         initialLocation: CLLocationCoordinate2D(latitude: vm.locationCoordinate!.coordinate.latitude, longitude: vm.locationCoordinate!.coordinate.longitude))
                 }
                 
-                EditEntryComposer(vm: vm)
+                EditEntryContent(vm: vm)
             }
             .scrollIndicators(.hidden)
             
-            ListBottomBlocker()
-                .ignoresSafeArea(.all)
-            EditEntry_BottomControls()
+            //Controls
+            ListBottomBlocker().ignoresSafeArea(.all)
+            EditEntry_BottomControls(vm: vm)
             EditEntry_TopControls()
             
+            //Overlays
+            if vm.moreDetails {
+                EditEntryDetails(entry: vm.entry) {
+                    withAnimation { vm.moreDetails.toggle() }
+                }
+                .transition(.blurReplace)
+            }
+             
+            
+            if vm.weatherDetails {
+                EditEntryWeather(entryWeather: vm.entry.weather) {
+                    vm.weatherDetails.toggle()
+                }
+                .transition(.blurReplace)
+            }
             
             if vm.listSpecies{
                 ListSpecies(mode: .select, selectedSpecies: $vm.entry.species, context: context) { vm.hideSpecies() }
@@ -109,177 +140,118 @@ struct EditEntry: View {
             }
                 
         }
-        .background(
-            AppColor.tone
-                .ignoresSafeArea(.all)
-        )
+        .alert(vm.alertTitle, isPresented: $vm.alertDisplay, actions: {}, message: {Text(vm.alertMessage)})
+        .environment(vm)
+        .background(AppColor.tone.ignoresSafeArea(.all))
         .ignoresSafeArea(.container)
     }
 }
-struct EditEntryComposer: View {
+
+struct EditEntryContent: View {
     
     @Bindable var vm: EditEntryViewModel
+    
+    @State private var displayCatch: Bool = false
+    @State private var displayWater: Bool = false
     
     var body: some View {
         VStack{
             VStack(alignment: .leading, spacing: 0) {
                 //Main & Photoes.
-                
-                HStack{
-                    HStack{
-                        Image(systemName: "calendar")
-                        Text("June 26, 14:38")
-                    }
-                        .font(.caption)
-                        .padding(.vertical,6)
-                        .padding(.horizontal,12)
-                        .background(AppColor.secondary)
-                        .cornerRadius(30)
-                        .padding(.leading,-6)
-                    Spacer()
-                }
-                
-                Text(vm.viewTitle)
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .padding(.top,16)
-                    .padding(.bottom,32)
-                
+                EditEntry_Header()
                 EditMainDetails(vm: vm)
-                EditCatchDetails(vm: vm)
-                EditWaterDetails(vm:vm)
-                //Weather
-                //Solunar
             }
         }
         .padding()
         .padding(.bottom,AppSafeArea.edges.bottom + AppSize.buttonSize)
-        .background(
-            VStack(spacing: 0, content: {
-                LinearGradient(
-                    colors: [
-                        AppColor.tone,
-                        AppColor.tone.opacity(0.75),
-                        AppColor.tone.opacity(0.0)
-                    ],
-                    startPoint: .bottom, endPoint: .top)
-                    .frame(height: 50)
-                 
-                AppColor.tone
-            })
-        )
+        .background(EntryFadeBackground())
         .padding(.top,-102)
     }
-    
-    
-    
-    struct EditMainDetails: View {
-        @Bindable var vm: EditEntryViewModel
-        
-        var speciesTitle: String {
-            vm.entry.species == nil ? "Select Species" : vm.entry.species!.name
-        }
-        var baitTitle: String {
-            vm.entry.bait == nil ? "Select Bait" : vm.entry.bait!.name
-        }
-        
-        var body: some View {
-            VStack{
-                SelectorButton("Species", speciesTitle) {
-                    vm.showSpecies()
-                }
-                HStack(spacing: 12) {
-                    LargeDoubleInput(title: "Length", value: $vm.entry.length, unit: AppUnits.length)
-                    LargeDoubleInput(title: "Weight", value: $vm.entry.weight, unit: AppUnits.weight)
-                }
-                SelectorButton("Bait", baitTitle) {
-                    vm.showBaits()
-                }
-            }
-        }
-    }
-    struct EditCatchDetails: View {
-        
-        @Bindable var vm: EditEntryViewModel
-        @State private var isExpanded: Bool = true
-        
-        var body: some View {
-            TitleDrop(title: "Catch", isExpanded: $isExpanded) {
-                VStack{
-                    LargeSelector("Casting method", $vm.entry.castingMethod)
-                    HStack(spacing: 12) {
-                        LargeDoubleInput(title: "Catch depth", value: $vm.entry.catchDepth, unit: AppUnits.length)
-                        LargeDoubleInput(title: "Other depth", value: $vm.entry.catchDepth, unit: AppUnits.length)
-                    }
-                }
-            }
-        }
-    }
-    struct EditWaterDetails: View {
-        
-        @Bindable var vm: EditEntryViewModel
-        @State private var isExpanded: Bool = true
-        
-        var body: some View {
-            TitleDrop(title: "Water", isExpanded: $isExpanded) {
-                VStack{
-                    LargeSelector("Tide state", $vm.entry.tideState)
-                    HStack(spacing: 12) {
-                        LargeDoubleInput(title: "Temperature", value: $vm.entry.waterTemperature, unit: AppUnits.temperature)
-                        LargeDoubleInput(title: "Visibility", value: $vm.entry.waterVisibility, unit: AppUnits.length)
-                    }
-                    LargeSelector("Bottom type", $vm.entry.bottomType)
-                }
-            }
-        }
-    }
 }
-
-
-
-struct TitleDrop<Content:View>: View {
-    
-    let title: String
-    @Binding var isExpanded: Bool
-    var content: () -> Content
-    
+struct EditEntry_Header: View {
+    @Environment(EditEntryViewModel.self) var vm
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button {
-                withAnimation { isExpanded.toggle() }
-                AppHaptics.light()
-            } label: {
-                HStack(alignment: .center, spacing: 0) {
-                    Text(title)
-                        .foregroundStyle(AppColor.primary)
-                        .fontWeight(.medium)
-                        .font(.title3)
-                        .padding(.vertical,24)
-                    Spacer()
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.half)
-                        .opacity(isExpanded ? 0.0 : 1.0)
+            HStack{
+                HStack{
+                    Image(systemName: "calendar")
+                    Text("June 26, 14:38")
                 }
-                .background(AppColor.tone)
+                    .font(.caption)
+                    .padding(.vertical,6)
+                    .padding(.horizontal,12)
+                    .background(AppColor.secondary)
+                    .cornerRadius(30)
+                    .padding(.leading,-6)
+                Spacer()
             }
-            if isExpanded{
-                content()
-                    .transition(.blurReplace)
+            Text(vm.viewTitle)
+                .font(.title)
+                .fontWeight(.medium)
+                .padding(.top,16)
+        }
+        .overlay(alignment: .bottomTrailing) {
+            RoundedRectangle(cornerRadius: 15)
+                .fill(AppColor.button)
+                .frame(width: 80, height: 120)
+                .opacity(0.5)
+        }
+        .padding(.bottom,32)
+        
+    }
+}
+struct EditMainDetails: View {
+    @Bindable var vm: EditEntryViewModel
+    
+    var speciesTitle: String {
+        vm.entry.species == nil ? "Select Species" : vm.entry.species!.name
+    }
+    var baitTitle: String {
+        vm.entry.bait == nil ? "Select Bait" : vm.entry.bait!.name
+    }
+    
+    var body: some View {
+        VStack{
+            SelectorButton("Species", speciesTitle) {
+                vm.showSpecies()
             }
-
+            HStack(spacing: 12) {
+                LargeDoubleInput(title: "Length", value: $vm.entry.length, unit: AppUnits.length)
+                LargeDoubleInput(title: "Weight", value: $vm.entry.weight, unit: AppUnits.weight)
+            }
+            SelectorButton("Bait", baitTitle) {
+                vm.showBaits()
+            }
+            LargeStringVerticalInput("Notes", "Your observations ...", $vm.entry.notes)
         }
     }
 }
+
+
 
 //MARK: - Main Components
 
 struct EditEntry_TopControls: View {
+    @Environment(EditEntryViewModel.self) var vm
     var body: some View {
         HStack{
             CircleButton("chevron.left") {}
+            if let weather = vm.entry.weather {
+                CapsuleButton(weather.condition_symbol, "\(Int(weather.temp_current))\(AppUnits.temperature)") {
+                    withAnimation {
+                        vm.weatherDetails.toggle()
+                    }
+                }
+            } else {
+                CircleButton("thermometer.medium.slash") {
+                    vm.showAlert("Weather is unavailable", "Failed to load weather for your location.")
+                }
+            }
+            
             Spacer()
-            CapsuleButton("plus", "Save") {}
+            
+            
+            TextButton("Save") {}
         }
         .padding(.horizontal)
         .padding(.top,AppSafeArea.edges.top)
@@ -287,12 +259,35 @@ struct EditEntry_TopControls: View {
     }
 }
 struct EditEntry_BottomControls: View {
+    
+    @Bindable var vm: EditEntryViewModel
+    
+    @State private var pickedPhotos: [PhotosPickerItem] = []
+    @State private var images: [UIImage] = []
+    
     var body: some View {
         HStack{
-            CircleButton("ellipsis") {}
+            CircleButton("ellipsis") {
+                vm.showDetails()
+            }
             
             Spacer()
-            CircleButton("photo") {}
+            
+            PhotosPicker(selection: $pickedPhotos, maxSelectionCount: 4, matching: .any(of: [.images,.not(.screenshots),.not(.panoramas)])) {
+                CircleLabel(symbol: "photo")
+            }
+            .onChange(of: pickedPhotos) { _, _ in
+                images.removeAll()
+                Task {
+                    for item in pickedPhotos {
+                        if let data = try? await item.loadTransferable(type: Data.self)
+                            ,let uiImage = UIImage(data: data) {
+                            images.append(uiImage)
+                        }
+                    }
+                }
+            }
+            
             CapsuleButton("camera.fill", "Camera") {}
             
         }
@@ -303,8 +298,6 @@ struct EditEntry_BottomControls: View {
     }
 }
 
-
-
 struct MapLocationMark: View {
     var body: some View {
         Circle()
@@ -313,7 +306,6 @@ struct MapLocationMark: View {
             .frame(width: 20,height: 20)
     }
 }
-
 
 
 struct EditEntryMap: View {
@@ -464,7 +456,11 @@ struct EditEntry_PreviewWrapper: View {
             LocationManager.shared.getCurrentLocation { location in
                 self.location = location
                 newEntry = Entry(lat: location.coordinate.latitude, lon: location.coordinate.longitude)
+                
+                newEntry!.weather = DemoData.weathers.randomElement() as! EntryWeather
             }
+            
+            
         }
         
         

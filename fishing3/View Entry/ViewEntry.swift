@@ -27,6 +27,10 @@ struct ViewEntry: View {
             }
             .scrollIndicators(.hidden)
             ViewEntryControls(action: backAction, toggle: $showEditor)
+            
+            ListBottomBlocker()
+            ViewEntryBottomControls()
+            
             if showEditor{ Text("Editor") .transition(.blurReplace)}
         }
         .environment(entry)
@@ -104,11 +108,13 @@ struct ViewEntryDrops: View {
     @State private var expandWater: Bool = false
     @State private var expandWeather: Bool = false
     @State private var expandSolunar: Bool = false
-    @State private var expandMetada: Bool = true
+    @State private var expandMetada: Bool = false
     
     var body: some View {
         LazyVStack(alignment: .leading, spacing: 0) {
             Divider()
+            
+            
             
             HeaderDrop("Catch", "figure.fishing", $expandCatch) {
                 Text(entry.castingMethod.shortLabel)
@@ -328,6 +334,7 @@ struct ViewEntryMap: View {
         )
     }
 }
+
 struct ViewEntryControls: View {
     
     var action: () -> Void
@@ -346,6 +353,21 @@ struct ViewEntryControls: View {
         .padding(.horizontal)
         .padding(.top,AppSafeArea.edges.top)
         .frame(maxHeight: .infinity, alignment: .top)
+    }
+}
+struct ViewEntryBottomControls: View {
+    
+
+    var body: some View {
+        HStack{
+            CircleButton("ellipsis") {  }
+            Spacer()
+            CircleButton("square.and.arrow.up") {  }
+
+        }
+        .padding(.horizontal)
+        .padding(.bottom,AppSafeArea.edges.bottom)
+        .frame(maxHeight: .infinity, alignment: .bottom)
     }
 }
 
@@ -374,7 +396,6 @@ struct HeaderDropRow<Values:View>: View {
         }
     }
 }
-
 struct HeaderDrop<TrailingContenet: View, Content: View>: View {
     
     let title: String

@@ -161,6 +161,8 @@ enum ListOrders: String, Selectable {
 enum ListModes { case select, edit }
 
 
+
+
 //MARK: - DETAILS
 
 enum CastingMethod: String, Selectable {
@@ -280,7 +282,118 @@ enum BottomType: String, Selectable {
 
 
 //MARK: - WEATHER
-
+enum WeatherTypes: String, Selectable {
+    
+    case temp, temp_low, temp_high, temp_feels, tempRange, pressure, pressure_trend, humidity, condition, cloud_cover, rain_amount, rain_chance, wind_speed, wind_gust, visibility, uv_index, moon, sunrise, sunset, moonrise, moonset
+    
+    var id: String {
+        self.rawValue
+    }
+    
+    var label: String {
+        switch self {
+        case .temp: return "Temperature"
+        case .temp_low: return "Temperature Low"
+        case .temp_high: return "Temperature High"
+        case .temp_feels: return "Temperature Feels"
+        case .tempRange: return "Temperature Range"
+        case .pressure: return "Pressure"
+        case .pressure_trend: return "Pressure Trend"
+        case .humidity: return "Humidity"
+        case .condition: return "Condition"
+        case .cloud_cover: return "Cloud cover"
+        case .rain_amount: return "Rain Amount"
+        case .rain_chance: return "Rain Chance"
+        case .wind_speed: return "Wind speed"
+        case .wind_gust: return "Wind gusts"
+        case .visibility: return "Visibility"
+        case .uv_index: return "UV Index"
+        case .moon: return "Moon phase"
+        case .sunrise: return "Sunrise"
+        case .sunset: return "Sunset"
+        case .moonrise: return "Moorise"
+        case .moonset: return "Moonset"
+        }
+    }
+    
+    var shortLabel: String {
+        switch self {
+        case .temp: return "Temp"
+        case .temp_low: return "Temp Low"
+        case .temp_high: return "Temp High"
+        case .temp_feels: return "Temp Feels"
+        case .tempRange: return "Temp Range"
+        case .pressure: return "Pressure"
+        case .pressure_trend: return "Pressure Trend"
+        case .humidity: return "Humidity"
+        case .condition: return "Condition"
+        case .cloud_cover: return "Cloud cover"
+        case .rain_amount: return "Rain Amount"
+        case .rain_chance: return "Rain Chance"
+        case .wind_speed: return "Wind speed"
+        case .wind_gust: return "Wind gusts"
+        case .visibility: return "Visibility"
+        case .uv_index: return "UV"
+        case .moon: return "Moon phase"
+        case .sunrise: return "Sunrise"
+        case .sunset: return "Sunset"
+        case .moonrise: return "Moorise"
+        case .moonset: return "Moonset"
+        }
+    }
+    
+    var symbolName: String {
+        switch self {
+        case .temp: return "thermometer.sun"
+        case .temp_low: return "thermometer.low"
+        case .temp_high: return "thermometer.high"
+        case .temp_feels: return "thermometer.variable"
+        case .tempRange: return "thermometer.variable"
+        case .pressure: return "barometer"
+        case .pressure_trend: return "gauge.with.dots.needle.bottom.50percent"
+        case .humidity: return "humidity"
+        case .condition: return "cloud.sun"
+        case .cloud_cover: return "cloud"
+        case .rain_amount: return "cloud.rain"
+        case .rain_chance: return "cloud.rain"
+        case .wind_speed: return "wind"
+        case .wind_gust: return "wind"
+        case .visibility: return "eye"
+        case .uv_index: return "sun.max.trianglebadge.exclamationmark"
+        case .moon: return "moon.stars"
+        case .sunrise: return "sunrise"
+        case .sunset: return "sunset"
+        case .moonrise: return "moonrise"
+        case .moonset: return "moonset"
+        }
+    }
+    
+    var unit: String? {
+        switch self {
+        case .temp: return AppUnits.temperature
+        case .temp_low: return AppUnits.temperature
+        case .temp_high: return AppUnits.temperature
+        case .temp_feels: return AppUnits.temperature
+        case .tempRange: return AppUnits.temperature
+        case .pressure: return AppUnits.pressure
+        case .pressure_trend: return nil
+        case .humidity: return AppUnits.humidity
+        case .condition: return nil
+        case .cloud_cover: return AppUnits.cloudCover
+        case .rain_amount: return AppUnits.rain
+        case .rain_chance: return AppUnits.rainChance
+        case .wind_speed: return AppUnits.windspeed
+        case .wind_gust: return AppUnits.windspeed
+        case .visibility: return AppUnits.airVisibility
+        case .uv_index: return nil
+        case .moon: return nil
+        case .sunrise: return nil
+        case .sunset: return nil
+        case .moonrise: return nil
+        case .moonset: return nil
+        }
+    }
+    }
 enum EntryPressureTrend: String,CaseIterable, Codable {
     case falling, rising, steady, error
     

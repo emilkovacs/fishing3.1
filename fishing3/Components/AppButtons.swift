@@ -61,6 +61,31 @@ struct CapsuleButton: View {
     }
 }
 
+struct TextButton: View {
+    let title: String
+    let action: () -> Void
+    
+    @State private var scale: CGFloat = 1.0
+    
+    var body: some View {
+        Button {
+            animatePress(scale: $scale)
+            AppHaptics.light()
+            action()
+        } label: {
+           TextLabel(title: title)
+        }
+        .scaleEffect(scale)
+    }
+    
+    init(_ title: String, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+}
+
+
+
 struct SelectorButton: View {
     
     let title: String
@@ -110,7 +135,6 @@ struct CapsuleLabel: View {
     
     var body: some View {
         HStack(alignment: .center, spacing: AppSize.buttonSpacing) {
-            
             Image(systemName: symbol)
                 .foregroundStyle(AppColor.button)
                 .fontWeight(.semibold)
@@ -122,6 +146,24 @@ struct CapsuleLabel: View {
                 .font(.callout2)
         }
         .padding(.horizontal)
+        .frame(height: AppSize.buttonSize)
+        .background(AppColor.secondary)
+        .cornerRadius(AppSize.buttonSize)
+        .contentShape(Rectangle())
+    }
+}
+
+struct TextLabel: View {
+    let title: String
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: AppSize.buttonSpacing) {
+            Text(title)
+                .foregroundStyle(AppColor.button)
+                .fontWeight(.semibold)
+                .font(.callout2)
+        }
+        .padding(.horizontal,18)
         .frame(height: AppSize.buttonSize)
         .background(AppColor.secondary)
         .cornerRadius(AppSize.buttonSize)
@@ -556,7 +598,7 @@ struct AppButtons_PreviewWrapper: View {
                         CircleButton("circle") {
                             
                         }
-                        CapsuleLabel(symbol: "matter.logo", title: "Matter")
+                        CapsuleLabel(symbol: "cloud", title: "24C")
                         Spacer()
                         CircleSelector(symbol: "circle", selection: $speciesWater)
                         

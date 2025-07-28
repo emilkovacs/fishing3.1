@@ -24,6 +24,11 @@ struct AppSize {
     static let radius: CGFloat = 18.0
     static let spacing: CGFloat = 8.0
     
+    static let smallSpace: CGFloat = 12.0
+    static let regularSpace: CGFloat = 16.0
+    
+    static let symbolWidth: CGFloat = 20.0
+    
     static let buttonSpacing: CGFloat = 6.0
     static let buttonPadding: CGFloat = 16.0
     static let buttonSize: CGFloat = 38.0
@@ -41,13 +46,18 @@ struct AppHaptics {
 struct AppUnits {
     static let usesMetric: Bool = Locale.current.measurementSystem == .metric
     
+    static let none: String = ""
+    
     static let weight: String = usesMetric ? "kg" : "lb"
     static let length: String = usesMetric ? "cm" : "in"
     static let lengthLarge: String = usesMetric ? "m" : "ft"
     static let temperature: String = usesMetric ? "C" : "F"
     
-    static let pressure: String = usesMetric ? "hPA" : "IDK"
+    static let pressure: String = usesMetric ? "hpa" : "IDK"
     static let humidity: String = "%"
+    static let cloudCover: String = "%"
+    static let rainChance: String = "%"
+    static let airVisibility: String = usesMetric ? "km" : "mi"
     static let rain: String = usesMetric ? "mm" : "IDK"
     static let windspeed: String = usesMetric ? "kmh" : "mph"
 }
@@ -56,6 +66,7 @@ struct AppUnits {
 extension Font {
     static let callout2: Font = .system(size: 14)
     static let title1: Font = .system(size: 26)
+    static let huge: Font = .system(size: 64)
 }
 
 
