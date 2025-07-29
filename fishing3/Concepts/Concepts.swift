@@ -710,6 +710,6 @@ struct PaywallDemo: View {
 */
 
 #Preview {
-   // Concepts()
-    ViewCatchDemo()
+    Concepts()
+    //ViewCatchDemo()
 }

@@ -112,10 +112,11 @@ struct DataDemo: View {
         DemoData.species.forEach { context.insert($0) }
         DemoData.baits.forEach { context.insert($0) }
 
-        for _ in 1...10 {
+        for _ in 1...Int(slider) {
             let locationCoord = DemoData.locations.randomElement() ?? CLLocationCoordinate2D(latitude: 1.0, longitude: 1.0)
             let location = CLLocation(latitude: locationCoord.latitude, longitude: locationCoord.longitude)
 
+            /*
             let weather: EntryWeather
             do {
                 weather = try await WeatherManager.shared.getWeather(location: location)
@@ -123,9 +124,11 @@ struct DataDemo: View {
                 print("⚠️ Weather fetch failed: \(error)")
                 continue
             }
-
+             */
+            
             let entry = Entry(lat: locationCoord.latitude, lon: locationCoord.longitude)
-            entry.weather = weather
+            entry.timestamp = DemoData().randomDates(count: 1).first!
+            entry.weather = DemoData.weathers.randomElement()!
             entry.species = allSpecies.randomElement() ?? Species("Error", .unknown, .unknown)
             entry.bait = allBaits.randomElement() ?? Bait("Error", .unknown, .unknown, "Error")
             entry.weight = DemoData.fishWeights.randomElement()
@@ -363,108 +366,10 @@ struct DemoData {
         CLLocationCoordinate2D(latitude: 44.524112, longitude: 21.309422),
         CLLocationCoordinate2D(latitude: 44.794831, longitude: 21.690044)
     ]
-    static let dates: [Date] = [
-    DateFormatter().date(from: "2022-07-11")!,
-    DateFormatter().date(from: "2022-07-14")!,
-    DateFormatter().date(from: "2022-07-15")!,
-    DateFormatter().date(from: "2022-07-16")!,
-    DateFormatter().date(from: "2022-07-18")!,
-    DateFormatter().date(from: "2022-07-21")!,
-    DateFormatter().date(from: "2022-07-21")!,
-    DateFormatter().date(from: "2022-07-22")!,
-    DateFormatter().date(from: "2022-07-25")!,
-    DateFormatter().date(from: "2022-07-26")!,
-    DateFormatter().date(from: "2022-07-27")!,
-    DateFormatter().date(from: "2022-07-28")!,
-    DateFormatter().date(from: "2022-08-02")!,
-    DateFormatter().date(from: "2022-08-04")!,
-    DateFormatter().date(from: "2022-08-05")!,
-    DateFormatter().date(from: "2022-08-07")!,
-    DateFormatter().date(from: "2022-08-09")!,
-    DateFormatter().date(from: "2022-08-11")!,
-    DateFormatter().date(from: "2022-08-11")!,
-    DateFormatter().date(from: "2022-08-13")!,
-    DateFormatter().date(from: "2022-08-15")!,
-    DateFormatter().date(from: "2022-08-18")!,
-    DateFormatter().date(from: "2022-08-20")!,
-    DateFormatter().date(from: "2022-08-22")!,
-    DateFormatter().date(from: "2022-08-23")!,
-    DateFormatter().date(from: "2022-08-25")!,
-    DateFormatter().date(from: "2022-08-27")!,
-    DateFormatter().date(from: "2022-08-27")!,
-    DateFormatter().date(from: "2022-08-30")!,
-    DateFormatter().date(from: "2022-08-31")!,
-    DateFormatter().date(from: "2022-09-04")!,
-    DateFormatter().date(from: "2022-09-04")!,
-    DateFormatter().date(from: "2022-09-05")!,
-    DateFormatter().date(from: "2022-09-06")!,
-    DateFormatter().date(from: "2022-09-06")!,
-    DateFormatter().date(from: "2022-09-06")!,
-    DateFormatter().date(from: "2022-09-10")!,
-    DateFormatter().date(from: "2022-09-11")!,
-    DateFormatter().date(from: "2022-09-15")!,
-    DateFormatter().date(from: "2022-09-15")!,
-    DateFormatter().date(from: "2022-09-15")!,
-    DateFormatter().date(from: "2022-09-18")!,
-    DateFormatter().date(from: "2022-09-19")!,
-    DateFormatter().date(from: "2022-09-22")!,
-    DateFormatter().date(from: "2022-09-22")!,
-    DateFormatter().date(from: "2022-09-25")!,
-    DateFormatter().date(from: "2022-09-26")!,
-    DateFormatter().date(from: "2022-09-26")!,
-    DateFormatter().date(from: "2022-09-27")!,
-    DateFormatter().date(from: "2022-09-28")!,
-    DateFormatter().date(from: "2022-09-29")!,
-    DateFormatter().date(from: "2022-10-02")!,
-    DateFormatter().date(from: "2022-10-02")!,
-    DateFormatter().date(from: "2022-10-05")!,
-    DateFormatter().date(from: "2022-10-06")!,
-    DateFormatter().date(from: "2022-10-15")!,
-    DateFormatter().date(from: "2022-10-16")!,
-    DateFormatter().date(from: "2022-10-17")!,
-    DateFormatter().date(from: "2022-10-20")!,
-    DateFormatter().date(from: "2022-10-22")!,
-    DateFormatter().date(from: "2022-10-22")!,
-    DateFormatter().date(from: "2022-10-23")!,
-    DateFormatter().date(from: "2022-10-25")!,
-    DateFormatter().date(from: "2022-10-26")!,
-    DateFormatter().date(from: "2022-10-26")!,
-    DateFormatter().date(from: "2022-10-26")!,
-    DateFormatter().date(from: "2022-10-27")!,
-    DateFormatter().date(from: "2022-10-28")!,
-    DateFormatter().date(from: "2022-10-28")!,
-    DateFormatter().date(from: "2022-10-29")!,
-    DateFormatter().date(from: "2022-10-31")!,
-    DateFormatter().date(from: "2022-11-01")!,
-    DateFormatter().date(from: "2022-11-01")!,
-    DateFormatter().date(from: "2022-11-03")!,
-    DateFormatter().date(from: "2022-11-05")!,
-    DateFormatter().date(from: "2022-11-06")!,
-    DateFormatter().date(from: "2022-11-11")!,
-    DateFormatter().date(from: "2022-11-13")!,
-    DateFormatter().date(from: "2022-11-15")!,
-    DateFormatter().date(from: "2022-11-21")!,
-    DateFormatter().date(from: "2022-11-22")!,
-    DateFormatter().date(from: "2022-11-23")!,
-    DateFormatter().date(from: "2022-11-24")!,
-    DateFormatter().date(from: "2022-11-25")!,
-    DateFormatter().date(from: "2022-12-02")!,
-    DateFormatter().date(from: "2022-12-02")!,
-    DateFormatter().date(from: "2022-12-04")!,
-    DateFormatter().date(from: "2022-12-04")!,
-    DateFormatter().date(from: "2022-12-07")!,
-    DateFormatter().date(from: "2022-12-08")!,
-    DateFormatter().date(from: "2022-12-10")!,
-    DateFormatter().date(from: "2022-12-10")!,
-    DateFormatter().date(from: "2022-12-12")!,
-    DateFormatter().date(from: "2022-12-14")!,
-    DateFormatter().date(from: "2022-12-15")!,
-    DateFormatter().date(from: "2022-12-16")!,
-    DateFormatter().date(from: "2022-12-16")!,
-    DateFormatter().date(from: "2022-12-17")!,
-    DateFormatter().date(from: "2022-12-21")!,
-    DateFormatter().date(from: "2022-12-22")!
-]
+   
+    var dates: [Date] {
+        randomDates(count: 500)
+    }
     
     static let fishWeights: [Double] = [
         16.22, 15.41, 13.59, 24.54, 19.95, 24.78, 3.83, 9.82, 24.84, 3.8,
@@ -543,6 +448,20 @@ struct DemoData {
         ),
         EntryWeather(
           id: UUID(),
+          temp_current: 23.5, temp_feels: 30.5, temp_low: 24.0, temp_high: 32.0,
+          humidity: 73.0, pressure: 1212.0, pressureTrend: .steady,
+          condition: "Clear", condition_symbol: "sun.max",
+          cloudCover: 0.45, uvIndex: 6,
+          sunset: date(from: "2025-07-01 20:41"),
+          sunrise: date(from: "2025-07-01 05:50"),
+          moon: .firstQuarter,
+          moonrise: date(from: "2025-07-01 00:17"),
+          moonset: date(from: "2025-07-01 12:31"),
+          visibility: 10_004, wind_speed: 5.0, wind_gusts: 8.0,
+          precipitation_amount: 4.0, precipitation_chance: 0.2
+        ),
+        EntryWeather(
+          id: UUID(),
           temp_current: 27.0, temp_feels: 29.0, temp_low: 21.0, temp_high: 30.0,
           humidity: 75.0, pressure: 1010.5, pressureTrend: .rising,
           condition: "Partly Cloudy", condition_symbol: "cloud.sun",
@@ -574,14 +493,47 @@ struct DemoData {
     
     //Helpers
     
-
-    
     let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         formatter.timeZone = TimeZone(secondsFromGMT: 0)
         return formatter
     }()
+    
+    func randomDates(count: Int) -> [Date] {
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        formatter.timeZone = TimeZone(identifier: "America/New_York")
+
+        guard let startDate = formatter.date(from: "2022-01-01"),
+              let endDate = formatter.date(from: "2025-12-31") else {
+            fatalError("Invalid date range")
+        }
+
+        let startTime = startDate.timeIntervalSince1970
+        let endTime = endDate.timeIntervalSince1970
+        var results: [Date] = []
+
+        for _ in 0..<count {
+            // Pick random day between start and end
+            let randomDayInterval = TimeInterval.random(in: startTime...endTime)
+            let randomDay = Date(timeIntervalSince1970: randomDayInterval)
+
+            // Extract just Y/M/D
+            var components = calendar.dateComponents([.year, .month, .day], from: randomDay)
+            components.hour = Int.random(in: 0..<24)
+            components.minute = Int.random(in: 0..<60)
+
+            if let finalDate = calendar.date(from: components) {
+                results.append(finalDate)
+            }
+        }
+
+        return results
+    }
+
+
     
 }
 

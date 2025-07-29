@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 import Charts
 
-
+/*
 struct DickChart2: View {
     var sunrise: Date
     var sunset: Date
@@ -367,3 +367,4 @@ struct DickChart_PreviewWrapper: View {
         .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
         
 }
+*/
