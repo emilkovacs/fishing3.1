@@ -84,6 +84,32 @@ struct TextButton: View {
     }
 }
 
+struct CompositeButton: View {
+    let title: String?
+    let symbol: String?
+    let action: () -> Void
+    
+    @State private var scale: CGFloat = 1.0
+    
+    var body: some View {
+        Button {
+            animatePress(scale: $scale)
+            AppHaptics.light()
+            action()
+        } label: {
+            CompositeLabel(symbol: symbol, title: title)
+        }
+        .scaleEffect(scale)
+
+    }
+    
+    init(_ title: String?, _ symbol: String?, action: @escaping () -> Void) {
+        self.title = title
+        self.symbol = symbol
+        self.action = action
+    }
+}
+
 
 
 struct SelectorButton: View {
@@ -128,6 +154,34 @@ struct SelectorButton: View {
 }
 
 //MARK: - LABELS
+
+struct CompositeLabel: View {
+    let symbol: String?
+    let title: String?
+    
+    var body: some View {
+        HStack(alignment: .center, spacing: AppSize.buttonSpacing) {
+            if let setSymbol = symbol {
+                Image(systemName: setSymbol)
+                    .foregroundStyle(AppColor.button)
+                    .fontWeight(.semibold)
+                    .font(.callout2)
+            }
+            if let setTitle = title {
+                Text(setTitle)
+                    .foregroundStyle(AppColor.button)
+                    .fontWeight(.semibold)
+                    .font(.callout2)
+            }
+        }
+        .padding(.horizontal, title == nil ? 0 : 16)
+        .frame(minWidth: AppSize.buttonSize)
+        .frame(height: AppSize.buttonSize)
+        .background(AppColor.secondary)
+        .cornerRadius(AppSize.buttonSize)
+        .contentShape(Rectangle())
+    }
+}
 
 struct CapsuleLabel: View {
     let symbol: String
@@ -481,6 +535,21 @@ struct CircleSelector<T:Selectable>: View {
             AppHaptics.light()
         }))
 
+    }
+}
+
+struct CircleMenu<Content:View>: View {
+    let symbol: String
+    let content: () -> Content
+    var body: some View {
+        Menu{
+            content()
+        } label: {
+            CircleLabel(symbol: symbol)
+        }
+        .buttonStyle(ActionButtonStyle({
+            AppHaptics.light()
+        }))
     }
 }
 

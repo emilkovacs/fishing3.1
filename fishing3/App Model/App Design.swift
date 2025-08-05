@@ -32,6 +32,8 @@ struct AppSize {
     static let buttonSpacing: CGFloat = 6.0
     static let buttonPadding: CGFloat = 16.0
     static let buttonSize: CGFloat = 38.0
+    
+    static let chartHeight: CGFloat = 160.0
 }
 
 struct AppHaptics {

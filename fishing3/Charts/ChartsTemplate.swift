@@ -9,18 +9,285 @@ import SwiftUI
 import SwiftData
 import Charts
 
+
 enum ChartTypes {
-    case temp_current, temp_low, temp_high, temp_feels
-    
-    case humidity
-    case pressure
-    case cloudCover
-    case windSpeed, windGust
-    case rainAmount, rainChance
-    case uvIndex, visibility
-    
-    case waterTemp, waterVisibility, catchDepth
+    case hBar, vBar, line, timeline, point
 }
+enum ChartDataTypes: String, Identifiable, CaseIterable {
+    
+    //Categorical and stats
+    case species_name //*
+    case species_water, species_behaviour
+    case weight_distribution, length_distribution //*
+    case bait_name //*
+    case bait_type, bait_position //*
+    case casting_method, bottom_type //*
+    
+    //Linear and stats
+    case timestamp //*
+    
+    //Weather, linear
+    case temp_current, temp_low, temp_high, temp_feels ///``@`
+    case humidity, pressure ///``@`
+    
+    case cloudCover, uv_index, air_visibility  ///``@`
+    case wind_speed, wind_gusts ///``@`
+    
+    case rain_chance, rain_amount ///``@`
+    
+    case water_temp, water_visibility ///``@`
+    
+    //Weather categorical
+    case pressure_trend ///``@`
+    case condition ///``@`
+    case moon_phase //*
+    case tide_state ///``@`
+    
+    var id: String {self.rawValue}
+    
+    var chartType: ChartTypes {
+        switch self {
+        case .species_name, .bait_name, .condition, .moon_phase : return ChartTypes.vBar
+        case .weight_distribution, .length_distribution: return ChartTypes.point
+        case .bait_type, .bait_position, .casting_method, .bottom_type, .pressure_trend, .tide_state, .species_water, .species_behaviour : return ChartTypes.hBar
+        case .timestamp: return ChartTypes.timeline
+        case .water_temp, .water_visibility, .rain_amount, .rain_chance, .wind_speed, .wind_gusts, .cloudCover, .uv_index, .air_visibility, .humidity, .pressure, .temp_current, .temp_low, .temp_high, .temp_feels: return ChartTypes.line
+        }
+    }
+    
+    var title: String {
+        switch self {
+        case .species_name: return "Top Species"
+        case .species_water: return "Species Water"
+        case .species_behaviour: return "Species Behaviour"
+        case .weight_distribution: return "Weight distribution"
+        case .length_distribution: return "Length distribution"
+        case .bait_name: return "Top Baits"
+        case .bait_type: return "Bait Types"
+        case .bait_position: return "Bait Positions"
+        case .casting_method: return "Casting method"
+        case .bottom_type: return "Bottom type"
+        case .timestamp: return "Time of the day"
+            
+        case .temp_current: return "Temperature"
+        case .temp_low: return "Temperature, Low"
+        case .temp_high: return "Temperature, High"
+        case .temp_feels: return "Temperature, Feels"
+        case .humidity: return "Humidity"
+        case .pressure: return "Pressure"
+        case .cloudCover: return "Cloud Cover"
+        case .uv_index: return "UV Index"
+        case .air_visibility: return "Visibility, Air"
+        case .wind_speed: return "Wind Speed"
+        case .wind_gusts: return "Wind Gusts"
+        case .rain_chance: return "Rain Chance"
+        case .rain_amount: return "Rain Amount"
+        case .water_temp: return "Water Temperature"
+        case .water_visibility: return "Visibility, Water"
+        case .pressure_trend: return "Pressure Trend"
+        case .condition: return "Condition"
+        case .moon_phase: return "Moon Phase"
+        case .tide_state: return "Tide State"
+        }
+    }
+    var description: String {
+        switch self {
+        case .species_name: return "Top species caught"
+        case .species_water: return "Amount of cathces by water type."
+        case .species_behaviour: return  "Amount of cathces by species behaviour."
+        case .weight_distribution: return "Distribution of weights"
+        case .length_distribution: return "Distribution of lengths"
+        case .bait_name: return "Top baits used"
+        case .bait_type: return "Amount of cathces by type of bait."
+        case .bait_position: return "Amount of cathces by position of bait."
+        case .casting_method: return "Amount of cathces by casting methods."
+        case .bottom_type: return "Amount of cathces by bottom types."
+        case .timestamp: return "Amount of cathces by time of the day."
+        case .temp_current: return "Amount of cathces by temperature."
+        case .temp_low: return "Amount of cathces by daily low temperature."
+        case .temp_high: return "Amount of cathces by daily high temperature."
+        case .temp_feels: return  "Amount of cathces by feels like temperature."
+        case .humidity: return  "Amount of cathces by humidity."
+        case .pressure: return "Amount of cathces by pressure."
+        case .cloudCover: return "Amount of cathces by cloud cover."
+        case .uv_index: return "Amount of cathces by UV Index."
+        case .air_visibility: return "Amount of cathces by visibility in air."
+        case .wind_speed: return "Amount of cathces by wind speed."
+        case .wind_gusts: return "Amount of cathces by wind gust strenghts."
+        case .rain_chance: return "Amount of cathces by chance of rain."
+        case .rain_amount: return "Amount of cathces by amount of rain."
+        case .water_temp: return "Amount of cathces by water temperature."
+        case .water_visibility: return "Amount of cathces by visibility in water."
+        case .pressure_trend: return "Amount of cathces by pressure trend."
+        case .condition: return "Amount of cathces by condition."
+        case .moon_phase: return "Amount of cathces by moon phase."
+        case .tide_state: return "Amount of cathces by tide state."
+        }
+    }
+    
+    var tint: Color {
+        switch self {
+        case .species_name: return Color.blue
+        case .species_water: return Color.blue
+        case .species_behaviour: return Color.blue
+        case .weight_distribution: return  Color.blue
+        case .length_distribution: return  Color.blue
+        case .bait_name: return  Color.orange
+        case .bait_type: return Color.orange
+        case .bait_position: return Color.orange
+        case .casting_method: return Color.mint
+        case .bottom_type: return Color.green
+        case .timestamp: return Color.yellow
+        case .temp_current: return Color.orange
+        case .temp_low: return Color.orange
+        case .temp_high: return Color.orange
+        case .temp_feels: return  Color.orange
+        case .humidity: return  Color.teal
+        case .pressure: return Color.blue
+        case .cloudCover: return Color.mint
+        case .uv_index: return Color.purple
+        case .air_visibility: return Color.green
+        case .wind_speed: return Color.purple
+        case .wind_gusts: return Color.purple
+        case .rain_chance: return Color.green
+        case .rain_amount: return Color.green
+        case .water_temp: return Color.blue
+        case .water_visibility: return Color.indigo
+        case .pressure_trend: return Color.blue
+        case .condition: return Color.yellow
+        case .moon_phase: return Color.purple
+        case .tide_state: return Color.teal
+        }
+    }
+    
+    var path: PartialKeyPath<Entry>{
+        switch self {
+        case .species_name: return \.species?.name
+        case .species_water: return \.species?.water.label
+        case .species_behaviour: return \.species?.behaviour.label
+        case .weight_distribution: return \.weight
+        case .length_distribution: return \.length
+        case .bait_name: return \.bait?.name
+        case .bait_type: return \.bait?.type.label
+        case .bait_position: return \.bait?.position.label
+        case .casting_method: return \.castingMethod.chartsLabel
+        case .bottom_type: return \.bottomType.chartsLabel
+        case .timestamp: return \.timestamp
+        case .temp_current: return \.weather?.temp_current
+        case .temp_low: return \.weather?.temp_low
+        case .temp_high: return \.weather?.temp_high
+        case .temp_feels: return \.weather?.temp_feels
+        case .humidity: return \.weather?.humidity
+        case .pressure: return \.weather?.pressure
+        case .cloudCover: return \.weather?.cloudCover
+        case .uv_index: return \.weather?.uvIndex
+        case .air_visibility: return \.weather?.visibility
+        case .wind_speed: return \.weather?.wind_speed
+        case .wind_gusts: return \.weather?.wind_gusts
+        case .rain_chance: return \.weather?.precipitation_chance
+        case .rain_amount: return \.weather?.precipitation_amount
+        case .water_temp: return \.waterTemperature
+        case .water_visibility: return \.waterVisibility
+        case .pressure_trend: return \.weather?.pressureTrend.chartsLabel
+        case .condition: return \.weather?.condition
+        case .moon_phase: return \.weather?.moon.chartsLabel
+        case .tide_state: return \.tideState.chartsLabel
+        }
+    }
+}
+
+
+struct SingleChart: View {
+    
+    let type: ChartDataTypes
+    let allEntries: [Entry]
+    
+    var body: some View {
+        ChartTitle(title: type.title, description: type.description,trailingContent: {
+            EmptyView()
+        })
+            .modifier(ListModifier())
+        switch type.chartType {
+        case .hBar:
+            HorizontalBarChart(allEntries: allEntries, keyPath: type.path as! KeyPath<Entry, String?>, tint: type.tint)
+                .modifier(ListModifier())
+                .padding(.bottom,32)
+        case .vBar:
+            VerticalBarChart(allEntries: allEntries, keyPath: type.path as! KeyPath<Entry, String?>, tint: type.tint)
+                .modifier(ListModifier())
+                .padding(.bottom,32)
+        case .line:
+            LineChart(allEntries: allEntries, keyPath: type.path as! KeyPath<Entry, Double?>, tint: type.tint)
+                .modifier(ListModifier())
+                .padding(.bottom,32)
+        case .timeline:
+            Text("Ooops")
+        case .point:
+            Text("Ooops")
+        }
+    }
+}
+struct MultiChart: View {
+    
+    let types: [ChartDataTypes]
+    let allEntries: [Entry]
+    
+    @State private var selectedType: ChartDataTypes
+    
+    init(types: [ChartDataTypes], allEntries: [Entry]) {
+        self.types = types
+        self.allEntries = allEntries
+        //This is dangereous....
+        self.selectedType = types.first!
+    }
+    
+    var body: some View {
+        ChartTitle(title: selectedType.title, description: selectedType.description,trailingContent: {
+            HStack{
+                Menu {
+                    Picker(selection: $selectedType) {
+                        ForEach(types) { item in
+                            Text(item.title).tag(item)
+                        }
+                    } label: {}
+                } label: {
+                    Image(systemName: "filemenu.and.selection")
+                        .font(.callout2)
+                        .foregroundStyle(AppColor.half)
+                        .frame(width: 32, height: 32)
+                        .allowsHitTesting(true)
+                }
+                .buttonStyle(ActionButtonStyle({AppHaptics.light()}))
+            }
+            
+        })
+        .modifier(ListModifier())
+       
+        switch selectedType.chartType {
+        case .hBar:
+            HorizontalBarChart(allEntries: allEntries, keyPath: selectedType.path as! KeyPath<Entry, String?>, tint: selectedType.tint)
+                .modifier(ListModifier())
+                .padding(.bottom,32)
+                .id(selectedType.id)
+        case .vBar:
+            VerticalBarChart(allEntries: allEntries, keyPath: selectedType.path as! KeyPath<Entry, String?>, tint: selectedType.tint)
+                .modifier(ListModifier())
+                .padding(.bottom,32)
+                .id(selectedType.id)
+        case .line:
+            LineChart(allEntries: allEntries, keyPath: selectedType.path as! KeyPath<Entry, Double?>, tint: selectedType.tint)
+                .modifier(ListModifier())
+                .padding(.bottom,32)
+                .id(selectedType.id)
+        case .timeline:
+            Text("Ooops")
+        case .point:
+            Text("Ooops")
+        }
+    }
+}
+
+
 
 //Chart data types
 /// Used to display categorical or continuous data on charts.
@@ -81,7 +348,6 @@ func compileNumericData(_ allEntries: [Entry], keyPath: KeyPath<Entry, Double?>)
     result.sort { $0.x < $1.x } // Sort in place
     return result
 }
-
 func compileTimeData(
     _ allEntries: [Entry],
     bucketSize: TimeInterval = 900 // 15 minutes
@@ -112,7 +378,6 @@ func compileTimeData(
     
     return result
 }
-
 func compileRange<T>( data: [T], key: (T) -> Int, expanded: Bool ) -> ClosedRange<Int> {
     //Usage example: let xRange = compileRange(data: chartData, key: { $0.x }, expanded: true)
     guard let first = data.first else { return 0...10 }
@@ -136,6 +401,29 @@ func compileRange<T>( data: [T], key: (T) -> Int, expanded: Bool ) -> ClosedRang
     return (minValue - padding)...(maxValue + padding)
 }
 
+//
+
+struct ChartTitle<Content:View>: View {
+    
+    let title: String
+    let description: String
+    let trailingContent: () -> Content
+    var body: some View {
+        HStack{
+            VStack(alignment: .leading) {
+                Text(title)
+                    .font(.callout)
+                    .fontWeight(.medium)
+                Text(description)
+                    .font(.caption)
+                    .foregroundStyle(AppColor.half)
+            }
+            Spacer()
+            trailingContent()
+        }
+        .padding(.bottom,16)
+    }
+}
 
 //Chart templates
 struct VerticalBarChart: View {
@@ -181,6 +469,11 @@ struct VerticalBarChart: View {
                 .chartYSelection(value: $selectedY)
                 .chartXScale(domain: xRange)
                 .frame(height: 240)
+                .overlay(alignment: .center) {
+                    if data.isEmpty {
+                        EmptyChartMessage()
+                    }
+                }
                 
             } else {
                 ProgressView("Loading Chart…")
@@ -207,8 +500,6 @@ struct VerticalBarChart: View {
 }
 struct HorizontalBarChart: View {
     
-    //Q: Where to annotate the numbers?
-    
     let allEntries: [Entry]
     let keyPath: KeyPath<Entry, String?>
     let tint: Color
@@ -217,7 +508,6 @@ struct HorizontalBarChart: View {
     @State private var yRange: ClosedRange<Int> = 0...1
     @State private var loaded = false
     
-    @State private var selectedY: String?
     @State private var selectedX: String?
     
     var body: some View {
@@ -243,7 +533,6 @@ struct HorizontalBarChart: View {
                                 .font(.caption2)
                         }
                     })
-                    
                     .foregroundStyle(
                         LinearGradient(colors: [tint.opacity(selectedX == item.x ? 0.5 : 0.35),Color.clear], startPoint: .top, endPoint: .bottom)
                     )
@@ -252,11 +541,15 @@ struct HorizontalBarChart: View {
                 }
                 .chartXSelection(value: $selectedX)
                 .chartYScale(domain: yRange)
-                .frame(height: 140)
-                
+                .frame(height: AppSize.chartHeight)
+                .overlay(alignment: .center) {
+                    if data.isEmpty {
+                        EmptyChartMessage()
+                    }
+                }
             } else {
                 ProgressView("Loading Chart…")
-                    .frame(height: 140)
+                    .frame(height: AppSize.chartHeight)
             }
         }
         .task {computeData()}
@@ -292,21 +585,6 @@ struct LineChart: View {
     
     var body: some View {
         VStack(alignment: .leading){
-            
-            HStack{
-                VStack(alignment: .leading) {
-                    Text("Wind speed")
-                        .font(.callout)
-                        .fontWeight(.medium)
-                    Text("Amount of catches by wind speed.")
-                        .font(.caption)
-                        .foregroundStyle(AppColor.half)
-                }
-                Spacer()
-            }
-            .padding(.bottom,12)
-
-            
             if loaded {
                 Chart(data) { item in
                     
@@ -315,9 +593,10 @@ struct LineChart: View {
                         y: .value("", item.y),
                         series: .value("", "Line")
                     )
+                    .alignsMarkStylesWithPlotArea()
                     .interpolationMethod(.catmullRom)
                     .foregroundStyle(tint)
-                
+                    
                     AreaMark(
                         x: .value("", item.x),
                         y: .value("", item.y),
@@ -353,18 +632,22 @@ struct LineChart: View {
                     }
 
                 }
-                .frame(height: 140)
+                .frame(height: AppSize.chartHeight)
                 .chartXSelection(value: $selectedX)
                 .chartXScale(domain: xRange)
                 .chartYScale(domain: yRange)
+                .overlay(alignment: .center) {
+                    if data.isEmpty {
+                        EmptyChartMessage()
+                    }
+                }
                 
                 
             } else {
                 ProgressView("Loading Chart…")
-                    .frame(height: 140)
+                    .frame(height: AppSize.chartHeight)
             }
         }
-        .padding(.bottom,48)
         .task { computeData() }
     }
     
@@ -385,7 +668,6 @@ struct LineChart: View {
         }
     }
 }
-
 struct TimeLineChart: View {
     let allEntries: [Entry]
     let tint: Color
@@ -489,6 +771,16 @@ struct TimeLineChart: View {
     }
 }
 
+//Helpers
+
+struct EmptyChartMessage: View {
+    var body: some View {
+        Text("No Data")
+            .font(.callout)
+            .italic()
+    }
+}
+
 #if DEBUG
 
 struct ChartsTemplate_PreviewWrapper: View {
@@ -500,32 +792,23 @@ struct ChartsTemplate_PreviewWrapper: View {
         List{
             HStack{Spacer().frame(height: 160)}.modifier(ListModifier())
             
-            LineChart(allEntries: allEntries, keyPath: \.weight,tint: .blue)
+            HorizontalBarChart(allEntries: [], keyPath: \.castingMethod.chartsLabel, tint: .green)
                 .modifier(ListModifier())
             
-            LineChart(allEntries: allEntries, keyPath: \.length,tint: .orange)
-                .modifier(ListModifier())
-                
-            TimeLineChart(allEntries: allEntries, tint: .blue)
-                .modifier(ListModifier())
-                .padding(.bottom,128)
+           // SingleChart(type: .temp_current, allEntries: allEntries)
+            // SingleChart(type: .casting_method, allEntries: allEntries)
+           // MultiChart(types: [.species_name,.species_water,.species_behaviour], allEntries: allEntries)
+           // MultiChart(types: [.species_name,.species_water,.species_behaviour], allEntries: allEntries)
             
-            VerticalBarChart(allEntries: allEntries, keyPath: \.species?.name, tint: .pink)
-                .modifier(ListModifier())
-                .padding(.bottom,128)
-            HorizontalBarChart(allEntries: allEntries, keyPath: \.species?.name, tint: .yellow)
-                .modifier(ListModifier())
-                .padding(.bottom,128)
+            //SingleChart(type: .species_name, allEntries: allEntries)
+           // SingleChart(type: .species_water, allEntries: allEntries)
+           // SingleChart(type: .species_behaviour, allEntries: allEntries)
             
-            HorizontalBarChart(allEntries: allEntries, keyPath: \.bait?.name,tint: .green)
-                .modifier(ListModifier())
-                .padding(.bottom,128)
+            //SingleChart(type: .bait_name, allEntries: allEntries)
             
-
+           // SingleChart(type: .bait_position, allEntries: allEntries)
+            //SingleChart(type: .bait_type, allEntries: allEntries)
             
-            LineChart(allEntries: allEntries, keyPath: \.weather?.wind_speed,tint: .purple)
-                .modifier(ListModifier())
-                .padding(.bottom,128)
             
            
         }

@@ -13,7 +13,14 @@ import Charts
 /// Last 5000 entries are calculated without filters.
 /// Filters: Top 5 species,
 /// Do we even need filters?
+
+
+// Dev notes
+/// Maybe a cool chart loader with "aggregating data" ?
 ///
+/// Onboard view?
+/// Filter view?
+
 @Observable
 class ChartsViewModel {
     
@@ -21,13 +28,16 @@ class ChartsViewModel {
     var backAction: () -> Void
     let entries: [Entry]
 
+    var showWeather: Bool = true
+    var showStats: Bool = true
+    
     init(context: ModelContext, backAction: @escaping () -> Void) {
         self.context = context
         self.backAction = backAction
         
         //Construct descriptor
         var descriptor = FetchDescriptor<Entry>( sortBy: [SortDescriptor(\.timestamp, order: .forward)])
-        descriptor.fetchLimit = 5000
+        descriptor.fetchLimit = 300
         
         //Fetch with descriptor
         do {
@@ -39,7 +49,6 @@ class ChartsViewModel {
             entries = []
         }
     }
-
 }
 
 struct ChartsView: View {
@@ -55,10 +64,19 @@ struct ChartsView: View {
     
     var body: some View {
         ZStack {
-            ChartsStatsView()
+            if vm.showStats{
+                ChartsStatsView()
+                    .transition(.blurReplace)
+            } else {
+                ChartsWeatherView()
+                    .transition(.blurReplace)
+            }
             
             ListTopBlocker()
-            ChartsTopControls()
+            ListBottomBlocker()
+            ChartsTopControls(vm: vm)
+            ChartsBottomControls(vm: vm)
+            
         }
         .environment(vm)
         .ignoresSafeArea(.container)
@@ -67,6 +85,43 @@ struct ChartsView: View {
     }
 }
 
+struct ChartsWeatherView: View {
+    @Environment(ChartsViewModel.self) var vm
+    var body: some View {
+        List{
+            Spacer()
+                .frame(height: AppSafeArea.edges.top + AppSize.buttonSize + 32)
+                .modifier(ListModifier())
+            
+            HStack{
+                Text("Weather")
+                    .font(.largeTitle)
+                    .fontWeight(.medium)
+                Spacer()
+            }
+            .padding(.bottom,32)
+            .modifier(ListModifier())
+            
+            MultiChart(types: [.temp_current,.temp_feels,.temp_high,.temp_low], allEntries: vm.entries)
+            MultiChart(types: [.pressure,.pressure_trend,.humidity], allEntries: vm.entries)
+                
+            MultiChart(types: [.water_temp,.water_visibility,.tide_state], allEntries: vm.entries)
+            
+            MultiChart(types: [.condition,.cloudCover,.air_visibility,.rain_chance,.rain_amount], allEntries: vm.entries)
+            
+            MultiChart(types: [.wind_speed,.wind_gusts], allEntries: vm.entries)
+            
+            SingleChart(type: .moon_phase, allEntries: vm.entries)
+            
+            Spacer()
+                .frame(height: AppSafeArea.edges.bottom + AppSize.buttonSize + 32)
+                .modifier(ListModifier())
+        }
+        .listStyle(.plain)
+        .background(AppColor.tone)
+        
+    }
+}
 struct ChartsStatsView: View {
     @Environment(ChartsViewModel.self) var vm
     var body: some View {
@@ -77,12 +132,23 @@ struct ChartsStatsView: View {
             HStack{
                 Text("Statistics")
                     .font(.largeTitle)
+                    .fontWeight(.medium)
                 Spacer()
             }
-            .padding(.bottom,24)
+            .padding(.bottom,32)
             .modifier(ListModifier())
             
-            HorizontalBarChart(allEntries: vm.entries, keyPath: \.species?.name, tint: .blue).modifier(ListModifier())
+           // MultiChart(types: [.species_name,.species_water,.species_behaviour], allEntries: vm.entries)
+            
+           // MultiChart(types: [.bait_name,.bait_type,.bait_position], allEntries: vm.entries)
+            
+            //SingleChart(type: .casting_method, allEntries: vm.entries)
+            
+            //MultiChart(types: [.bottom_type], allEntries: vm.entries)
+            
+           // MultiChart(types: [.weight_distribution,.length_distribution], allEntries: vm.entries)
+            
+           // HorizontalBarChart(allEntries: vm.entries, keyPath: \.species?.name, tint: .blue).modifier(ListModifier())
             
             Spacer()
                 .frame(height: AppSafeArea.edges.bottom + AppSize.buttonSize + 32)
@@ -92,14 +158,54 @@ struct ChartsStatsView: View {
     }
 }
 
+struct ChartsFilterView: View {
+    
+    @Bindable var vm: ChartsViewModel
+    ///Total amount
+    ///
+    //Amount
+    //Species
+    
+    var body: some View {
+        Text("E")
+    }
+}
+
+//Controls
+struct ChartsBottomControls: View {
+    @Bindable var vm: ChartsViewModel
+    var body: some View {
+        HStack{
+            CompositeButton(vm.showStats ? "Stats" : nil, "chart.pie") {
+                withAnimation {
+                    vm.showStats = true
+                }
+            }
+            CompositeButton(vm.showStats ? nil : "Weather", "cloud.sun") {
+                withAnimation {
+                    vm.showStats = false
+                }
+            }
+            Spacer()
+            CapsuleButton("line.3.horizontal.decrease", "Filter") {
+                
+            }
+           
+        }
+        .padding(.horizontal)
+        .padding(.bottom,AppSafeArea.edges.bottom)
+        .frame(maxHeight: .infinity, alignment: .bottom)
+    }
+}
 struct ChartsTopControls: View {
+    @Bindable var vm: ChartsViewModel
     var body: some View {
         HStack{
             CircleButton("chevron.left") {
-                
+                vm.backAction()
             }
             Spacer()
-            CircleButton("line.3.horizontal.decrease") {
+            CircleButton("info") {
                 
             }
         }
@@ -109,8 +215,9 @@ struct ChartsTopControls: View {
     }
 }
 
-#if DEBUG
 
+
+#if DEBUG
 struct ChartsView_PreviewWrapper: View {
     @Environment(\.modelContext) var context
     
@@ -120,10 +227,8 @@ struct ChartsView_PreviewWrapper: View {
         }
     }
 }
-
 #Preview {
     ChartsView_PreviewWrapper()
         .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
 }
-
 #endif

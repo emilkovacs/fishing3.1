@@ -180,6 +180,8 @@ enum CastingMethod: String, Selectable {
         }
     }
     
+    var chartsLabel: String? { self.shortLabel }
+    
     var shortLabel: String {
         switch self {
         case .shore: return "Shore"
@@ -224,6 +226,9 @@ enum TideState: String, Selectable {
         case .unknown: return "Unknown"
         }
     }
+    
+    var chartsLabel: String? { self.shortLabel }
+    
     var shortLabel: String {
         switch self {
         case .low: return "Low"
@@ -266,6 +271,8 @@ enum BottomType: String, Selectable {
         case .unknown: return "Unknown"
         }
     }
+    
+    var chartsLabel: String? { self.shortLabel }
     
     var shortLabel: String {
         switch self {
@@ -406,6 +413,7 @@ enum EntryPressureTrend: String,CaseIterable, Codable {
         case .error: return "Error"
         }
     }
+    var chartsLabel: String? { self.label }
     var symbolName: String {
         switch self {
         case .falling: return "arrow.down.right"
@@ -439,6 +447,7 @@ enum EntryMoonPhase: String, CaseIterable, Codable {
         case .error: return "Error"
         }
     }
+    var chartsLabel: String? { self.label }
 
     var symbolName: String {
         switch self {
