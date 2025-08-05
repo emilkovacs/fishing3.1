@@ -229,6 +229,6 @@ struct ChartsView_PreviewWrapper: View {
 }
 #Preview {
     ChartsView_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 #endif

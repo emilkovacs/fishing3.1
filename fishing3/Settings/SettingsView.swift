@@ -242,7 +242,7 @@ struct SettingsView_PreviewWrapper: View {
 
 #Preview {
     SettingsView_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 
 #endif

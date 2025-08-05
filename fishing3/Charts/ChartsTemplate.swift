@@ -819,7 +819,7 @@ struct ChartsTemplate_PreviewWrapper: View {
 
 #Preview{
     ChartsTemplate_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 
 

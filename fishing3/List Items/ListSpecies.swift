@@ -316,6 +316,6 @@ struct ListSpecies_PreviewWrapper: View {
 
 #Preview {
     ListSpecies_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 #endif

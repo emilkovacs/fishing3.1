@@ -177,6 +177,6 @@ struct EditSpecies_PreviewWrapper: View {
 
 #Preview {
     EditSpecies_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 #endif

@@ -14,7 +14,7 @@ struct fishing3App: App {
             //CameraView_PreviewWrapper()
             
             ListSpecies_PreviewWrapper()
-                .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+                .superContainer()
              
         }
     }

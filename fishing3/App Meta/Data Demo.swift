@@ -17,6 +17,7 @@ struct DataDemo: View {
     @Query var allSpecies: [Species]
     @Query var allBaits: [Bait]
     @Query var allWeathers: [EntryWeather]
+    @Query var allDays: [Session]
     
     @State private var slider: Double = 100
     
@@ -37,7 +38,11 @@ struct DataDemo: View {
             let weatherDescriptor = FetchDescriptor<EntryWeather>(predicate: #Predicate{$0.condition_symbol != "alma"})
             let weatherCount = (try? context.fetchCount(weatherDescriptor) ) ?? 1111
             
+            let dayDescriptor = FetchDescriptor<Session>()
+            let dayCount = ( try? context.fetchCount(dayDescriptor)) ?? 1111
+            
           
+            Text("Days: \(dayCount)")
             Text("Entries: \(entryCount)")
             HStack{
                 Text("Species: \(speciesCount)  ")
@@ -98,6 +103,7 @@ struct DataDemo: View {
         allSpecies.forEach { entry in localContext.delete(entry)}
         allBaits.forEach { entry in localContext.delete(entry)}
         allWeathers.forEach { entry in localContext.delete(entry)}
+        allDays.forEach { entry in localContext.delete(entry)}
         print("Context cleared")
         
         do {
@@ -112,11 +118,14 @@ struct DataDemo: View {
         DemoData.species.forEach { context.insert($0) }
         DemoData.baits.forEach { context.insert($0) }
 
+        var generatedEntries: [Entry] = []
+        
         for _ in 1...Int(slider) {
             let locationCoord = DemoData.locations.randomElement() ?? CLLocationCoordinate2D(latitude: 1.0, longitude: 1.0)
-            let location = CLLocation(latitude: locationCoord.latitude, longitude: locationCoord.longitude)
+            
 
             /*
+             let location = CLLocation(latitude: locationCoord.latitude, longitude: locationCoord.longitude)
             let weather: EntryWeather
             do {
                 weather = try await WeatherManager.shared.getWeather(location: location)
@@ -139,8 +148,21 @@ struct DataDemo: View {
             entry.castingMethod = DemoData.methods.randomElement() ?? .unknown
             entry.notes = DemoData.notes.randomElement() ?? "Error"
 
-            context.insert(entry)
+            generatedEntries.append(entry)
         }
+        
+        //gen days
+        let calendar = Calendar.current
+        let grouped = Dictionary(grouping: generatedEntries) { entry in
+                calendar.startOfDay(for: entry.timestamp)
+            }
+        
+        for (day, entries) in grouped {
+                let fishingDay = Session(entries: entries)
+                fishingDay.timestamp = day
+                context.insert(fishingDay)
+                entries.forEach { context.insert($0) }
+            }
 
         do {
             try context.save()
@@ -154,7 +176,7 @@ struct DataDemo: View {
 
 #Preview {
     DataDemo()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
         
 }
 
@@ -486,6 +508,20 @@ struct DemoData {
           moonrise: date(from: "2025-07-31 12:58"),
           moonset: date(from: "2025-07-30 18:38"), // previous evening
           visibility: 9_000, wind_speed: 6.0, wind_gusts: 9.0,
+          precipitation_amount: 1.2, precipitation_chance: 0.5
+        ),
+        EntryWeather(
+          id: UUID(),
+          temp_current: 24.0, temp_feels: 28.0, temp_low: 20.5, temp_high: 29.0,
+          humidity: 71.0, pressure: 1009.0, pressureTrend: .falling,
+          condition: "Overcast", condition_symbol: "cloud.fill",
+          cloudCover: 0.9, uvIndex: 5,
+          sunset: date(from: "2025-07-31 20:38"),
+          sunrise: date(from: "2025-07-31 05:47"),
+          moon: .waxingCrescent,
+          moonrise: date(from: "2025-07-31 12:58"),
+          moonset: date(from: "2025-07-30 18:38"), // previous evening
+          visibility: 9_001, wind_speed: 6.0, wind_gusts: 9.0,
           precipitation_amount: 1.2, precipitation_chance: 0.5
         )
     ]

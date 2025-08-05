@@ -5,8 +5,29 @@
 //  Created by Emil Kovács on 11. 7. 2025..
 //
 
-import Foundation
+import SwiftUI
 import SwiftData
+
+@Model
+class Session {
+    @Attribute(.unique) var id: UUID
+    var timestamp: Date
+    @Relationship(deleteRule: .cascade) var entries: [Entry]
+    
+    
+    init(entries: [Entry]) {
+        self.id = UUID()
+        self.timestamp = Date()
+        self.entries = entries
+    }
+    
+    
+    init(id: UUID, timestamp: Date, entries: [Entry]) {
+        self.id = id
+        self.timestamp = timestamp
+        self.entries = entries
+    }
+}
 
 
 @Model
@@ -132,6 +153,10 @@ class Bait {
     
 }
 
-
+extension View {
+    func superContainer() -> some View {
+        self.modelContainer(for: [Session.self,Entry.self,Species.self,Bait.self,EntryWeather.self], inMemory: false, isAutosaveEnabled: false)
+    }
+}
 
 

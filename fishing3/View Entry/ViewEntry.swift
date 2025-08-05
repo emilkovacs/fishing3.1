@@ -518,5 +518,5 @@ private struct ViewEntry_Preview: View {
 
 #Preview {
     ViewEntry_Preview()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }

@@ -178,6 +178,6 @@ struct EditBait_PreviewWrapper: View {
 
 #Preview {
     EditBait_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 #endif

@@ -108,7 +108,7 @@ struct ListEntries_PreviewWrapper: View {
 }
 #Preview {
     ListEntries_PreviewWrapper()
-        .modelContainer(for: [Entry.self,Species.self,Bait.self],inMemory: false)
+        .superContainer()
 }
 
 
