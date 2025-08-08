@@ -13,7 +13,7 @@ class ListSessionsViewModel {
     let context: ModelContext
     
     var loadedSessions: [Session] = []
-    private let fetchLimit: Int = 50
+    private let fetchLimit: Int = 100
     private var fetchOffset: Int = 0
     private var isLoading: Bool = false
     
@@ -31,7 +31,7 @@ class ListSessionsViewModel {
         
         descriptor.fetchLimit = fetchLimit
         descriptor.fetchOffset = fetchOffset
-        descriptor.propertiesToFetch = [\.id,\.timestamp,\.entryCount]
+        descriptor.propertiesToFetch = [\.id,\.timestamp,\.speciesNames]
         
         Task{
             let newSessions = try? context.fetch(descriptor)
@@ -50,9 +50,9 @@ class ListSessionsViewModel {
     }
     
 }
-
 struct ListSessions: View {
     
+    @Namespace var listNS
     @Bindable var vm: ListSessionsViewModel
     
     init(context: ModelContext) {
@@ -63,129 +63,130 @@ struct ListSessions: View {
         ZStack{
             List{
                 ListTopSpacer()
+                Text("All catches")
+                    .font(.title)
+                    .fontWeight(.medium)
+                    .modifier(ListModifier())
+                    .padding(.bottom)
                 
                 ForEach(vm.loadedSessions){ session in
                         //SessionRowDesignA()
-                    SessionRowDesignB()
+                    SessionRow(ns:listNS, session: session)
                 }
                 Spacer().onAppear {
                     vm.fetchSessions()
                 }
+                .modifier(ListModifier())
             }
             .listStyle(.plain)
             .onAppear {
                 vm.fetchSessions()
             }
+            
+            //Top Control Area
+            ListTopBlocker()
+            HStack{
+                CircleButton("chevron.left") {
+                    
+                }
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top,AppSafeArea.edges.top)
+            .frame(maxHeight: .infinity,alignment:.top)
+            
+        }
+        .cornerRadius(30)
+        .ignoresSafeArea(.container)
+        .background(AppColor.tone.ignoresSafeArea(.all))
+        
+        
+        
+    }
+}
+struct SessionRow: View {
+    let ns: Namespace.ID
+    let session: Session
+    
+    @Namespace var rowNS
+    @Namespace var textNS
+    var body: some View {
+        NavigationLink {
+            if #available(iOS 18.0, *) {
+                QuickListDemo(ns: rowNS, text: session.speciesSummary,id: session.id.uuidString)
+                    
+            } else {
+                // Fallback on earlier versions
+            }
+        } label: {
+            if #available(iOS 18.0, *) {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack{
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text(session.timestamp.formatted(date: .abbreviated, time: .omitted))
+                                .font(.callout2)
+                                .foregroundStyle(AppColor.half)
+
+                                
+                            Text(session.speciesSummary)
+                                .font(.callout)
+                                .matchedTransitionSource(id: session.id.uuidString, in: rowNS)
+                                
+                        }
+                        Spacer()
+                        
+                        //Counter
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(AppColor.half.opacity(0.2))
+                            .frame(width: 42,height: 42)
+                            .overlay(alignment: .center) {
+                                Text("\(session.speciesNames.count)")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                            }
+                        
+                    }
+                    .padding(.vertical)
+                    Divider()
+                }
+                
+            } else {
+                // Fallback on earlier versions
+            }
+        }
+        .modifier(ListModifier())
+        
+
+    }
+}
+
+struct QuickListDemo: View {
+    let ns: Namespace.ID
+    let text: String
+    let id: String
+    var body: some View {
+        ZStack{
+            ScrollView{
+                ListTopSpacer()
+                if #available(iOS 18.0, *) {
+                    Text("Dec30 2025")
+                        .navigationTransition(.zoom(sourceID: "date", in: ns))
+                    Text(text)
+                        .font(.largeTitle)
+                        .fontWeight(.medium)
+                        .matchedGeometryEffect(id: id, in: ns)
+                        .navigationTransition(.zoom(sourceID: id, in: ns))
+                } else {
+                    // Fallback on earlier versions
+                }
+                HStack{
+                    Spacer()
+                }
+            }
         }
         .ignoresSafeArea(.container)
         .background(AppColor.tone.ignoresSafeArea(.all))
-    }
-}
-
-struct SessionRowDesignA: View {
-    var body: some View {
-        VStack(alignment:.leading, spacing: 0) {
-            HStack{
-                VStack(alignment:.leading, spacing: 6) {
-                    Text("March 24, 2024")
-                        .font(.callout)
-                        .fontWeight(.medium)
-                    
-                    Text("1 species, 2 baits")
-                        .font(.callout2)
-                        .foregroundStyle(AppColor.half)
-                }
-                Spacer()
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(AppColor.half.opacity(0.2))
-                    .frame(width: 42, height: 42)
-                    .overlay {
-                        Text("6")
-                            .font(.callout2)
-                            .fontWeight(.medium)
-                        
-                    }
-                
-            }
-            
-            .padding(.vertical)
-            Divider()
-        }
-        .modifier(ListModifier())
-    }
-}
-
-struct SessionRowDesignB: View {
-    var body: some View {
-        VStack(alignment:.leading, spacing: 0) {
-            HStack{
-                VStack(alignment:.leading, spacing: 8) {
-                    HStack{
-                        Text("March 24")
-                            .font(.callout2)
-                            .foregroundStyle(AppColor.half)
-                       
-                        
-                        Spacer()
-                        
-                        HStack(spacing:4){
-                            Image(systemName: "cloud")
-                                .font(.caption2)
-                            Text("Cloudy")
-                        }
-                        .font(.callout2)
-                        .foregroundStyle(AppColor.half)
-                        
-                       
-                    }
-                    
-                    HStack{
-                        Text("4 catches")
-                            .font(.callout)
-                            .foregroundStyle(AppColor.primary)
-                        
-                        Spacer()
-
-                        Text("Carp, Tuna +1")
-                            .font(.callout2)
-                            .foregroundStyle(AppColor.half)
-                        
-                    }
-                }
-                
-            }
-            .padding(.vertical)
-            Divider()
-        }
-        .modifier(ListModifier())
-    }
-}
-
-struct SessionRow: View {
-    
-    let session: Session
-    
-    var body: some View {
-        VStack(spacing:0){
-            HStack{
-                Text("\(session.entries.count)")
-                    .font(.callout)
-                
-                Spacer()
-                
-                Text("\(session.timestamp.formatted(date: .abbreviated, time: .omitted))")
-                    .font(.callout2)
-                
-                Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundStyle(AppColor.half)
-                    .padding(.leading,8)
-            }
-            .padding(.vertical)
-            Divider()
-        }
-        .modifier(ListModifier())
+        .navigationBarBackButtonHidden()
     }
 }
 
@@ -199,8 +200,11 @@ struct ListSessions_PreviewWrapper: View {
 }
 
 #Preview {
-    ListSessions_PreviewWrapper()
-        .superContainer()
+    NavigationStack{
+        ListSessions_PreviewWrapper()
+            .superContainer()
+    }
+    .background(AppColor.tone)
 }
 
 

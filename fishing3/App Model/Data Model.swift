@@ -14,9 +14,34 @@ class Session {
     var timestamp: Date
     @Relationship(deleteRule: .cascade) var entries: [Entry]
     
-    var entryCount: Int = 0
     var speciesNames: [String] = []
-    var conditions: [String] = []
+
+    var speciesSummary: String {
+        let counts = Dictionary(grouping: speciesNames, by: { $0 })
+            .mapValues { $0.count }
+
+        let uniqueNames = counts
+            .sorted { $0.value > $1.value }
+            .map { $0.key }
+
+        var result = ""
+        var remaining = uniqueNames.count
+
+        for (_, name) in uniqueNames.enumerated() {
+            let candidate = result.isEmpty ? name : result + ", " + name
+            if candidate.count > 24 {
+                let extra = remaining
+                result += ", +\(extra)"
+                break
+            } else {
+                result = candidate
+                remaining -= 1
+            }
+        }
+
+        return result
+    }
+    
     
     init(entries: [Entry]) {
         self.id = UUID()

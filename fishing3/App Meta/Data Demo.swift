@@ -165,11 +165,7 @@ struct DataDemo: View {
             }
         
         for day in allDays {
-            day.entryCount = day.entries.count
-        
-            day.speciesNames = Array(Set(day.entries.compactMap { $0.species?.name }))
-            day.conditions =  Array(Set(day.entries.compactMap { $0.weather?.condition }))
-
+            day.speciesNames = Array(day.entries.compactMap { $0.species?.name })
         }
         
         
