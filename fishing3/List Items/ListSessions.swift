@@ -50,7 +50,10 @@ class ListSessionsViewModel {
     }
     
 }
+
 struct ListSessions: View {
+    
+    /// Progressively fetches Sessions with only metada, not the whole entries.
     
     @Namespace var listNS
     @Bindable var vm: ListSessionsViewModel
@@ -112,12 +115,7 @@ struct SessionRow: View {
     @Namespace var textNS
     var body: some View {
         NavigationLink {
-            if #available(iOS 18.0, *) {
-                QuickListDemo(ns: rowNS, text: session.speciesSummary,id: session.id.uuidString)
-                    
-            } else {
-                // Fallback on earlier versions
-            }
+            Text("Aaa")
         } label: {
             if #available(iOS 18.0, *) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -160,35 +158,7 @@ struct SessionRow: View {
     }
 }
 
-struct QuickListDemo: View {
-    let ns: Namespace.ID
-    let text: String
-    let id: String
-    var body: some View {
-        ZStack{
-            ScrollView{
-                ListTopSpacer()
-                if #available(iOS 18.0, *) {
-                    Text("Dec30 2025")
-                        .navigationTransition(.zoom(sourceID: "date", in: ns))
-                    Text(text)
-                        .font(.largeTitle)
-                        .fontWeight(.medium)
-                        .matchedGeometryEffect(id: id, in: ns)
-                        .navigationTransition(.zoom(sourceID: id, in: ns))
-                } else {
-                    // Fallback on earlier versions
-                }
-                HStack{
-                    Spacer()
-                }
-            }
-        }
-        .ignoresSafeArea(.container)
-        .background(AppColor.tone.ignoresSafeArea(.all))
-        .navigationBarBackButtonHidden()
-    }
-}
+
 
 #if DEBUG
 
