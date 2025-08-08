@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-//Resolution /Years //Months //Etc
+//Resolution /Years //Months // @Days // @Entries
 //View/Edit overlay. :))
 
 @Observable
@@ -59,6 +59,8 @@ class ListEntriesViewModel {
     }
 }
 
+
+
 struct ListEntries: View {
     
     @Bindable var vm: ListEntriesViewModel
@@ -71,11 +73,6 @@ struct ListEntries: View {
     var body: some View {
         List{
             
-            DemoSec(date: Date())
-            
-            ForEach(vm.dayEntries.keys.sorted(by: >),id: \.self){ date in
-                DemoSec(date: date)
-            }
         }
         
         .onAppear {
@@ -84,19 +81,9 @@ struct ListEntries: View {
     }
 }
 
-struct DemoSec: View {
-    var date: Date
-    @State private var isExpanded: Bool = true
-    var body: some View {
-        DisclosureGroup(isExpanded: $isExpanded) {
-            Text("E")
-            Text("E")
-            Text("E")
-        } label: {
-            Text("\(date)")
-        }
-    }
-}
+
+
+
 
 
 #if DEBUG

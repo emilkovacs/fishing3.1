@@ -166,6 +166,7 @@ class EntryWeather {
         let current = weather.currentWeather
         let forecast = weather.dailyForecast.first
         
+        let x = weather.currentWeather.symbolName
         
         self.id = UUID()
         

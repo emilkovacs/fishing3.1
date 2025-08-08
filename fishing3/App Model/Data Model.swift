@@ -14,6 +14,9 @@ class Session {
     var timestamp: Date
     @Relationship(deleteRule: .cascade) var entries: [Entry]
     
+    var entryCount: Int = 0
+    var speciesNames: [String] = []
+    var conditions: [String] = []
     
     init(entries: [Entry]) {
         self.id = UUID()

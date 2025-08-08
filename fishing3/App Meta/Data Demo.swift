@@ -163,6 +163,17 @@ struct DataDemo: View {
                 context.insert(fishingDay)
                 entries.forEach { context.insert($0) }
             }
+        
+        for day in allDays {
+            day.entryCount = day.entries.count
+        
+            day.speciesNames = Array(Set(day.entries.compactMap { $0.species?.name }))
+            day.conditions =  Array(Set(day.entries.compactMap { $0.weather?.condition }))
+
+        }
+        
+        
+        
 
         do {
             try context.save()
