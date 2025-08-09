@@ -140,7 +140,7 @@ struct ListBaits: View {
     @Bindable var vm: ListBaitViewModel
     @Binding var selectedBait: Bait?
     @AppStorage("BaitsListOrder") var listOrder: ListOrders = .recents
-    
+    @Namespace var namespace
     init(
         mode: ListModes, selectedBait: Binding<Bait?>, context: ModelContext, backAction: @escaping () -> Void) {
             self.vm = ListBaitViewModel(mode: mode, context: context, backAction: backAction)
@@ -181,7 +181,7 @@ struct ListBaits: View {
             
             if vm.showEdit {
  
-                EditBait(bait: vm.editedBait, new: vm.newBait) {
+                EditBait(bait: vm.editedBait, new: vm.newBait,namespace: namespace) {
                     vm.hideEditOverlay()
                     vm.filterString = ""
                     vm.refresh()

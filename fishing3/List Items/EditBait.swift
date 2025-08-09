@@ -12,11 +12,12 @@ import PhotosUI
 struct EditBait: View {
     
     @Environment(\.modelContext) var context
+    @Environment(\.dismiss) var dismiss
     
     @Bindable var bait: Bait
     var new: Bool
+    var namespace: Namespace.ID
     var backAction: () -> Void
-    
     var title: String {
         new ? "New Bait" : "Edit Bait"
     }
@@ -35,6 +36,7 @@ struct EditBait: View {
                         .padding(.bottom,32)
                     
                     LargeStringInput("Name", "Unique Name", $bait.name)
+                        .navigationTransition(.zoom(sourceID: "title", in: namespace))
                     LargeSelector("Type", $bait.type)
                     LargeSelector("Position", $bait.position)
                     LargeStringVerticalInput("Notes", "Optional notes", $bait.notes)
@@ -43,12 +45,12 @@ struct EditBait: View {
                     bottomControls
 
                 }
+                .navigationTransition(.zoom(sourceID: "base", in: namespace))
                 .padding(.horizontal)
                 .padding(.top,64+16)
                 .padding(.top,AppSafeArea.edges.top)
             }
             topControls
-            
         }
         .background(AppColor.tone)
         .ignoresSafeArea(.container)
@@ -61,9 +63,7 @@ struct EditBait: View {
             Spacer()
             CircleButton(bait.star ? "star.fill" : "star") { bait.star.toggle() }
         }
-        .padding(.horizontal)
-        .padding(.top,AppSafeArea.edges.top)
-        .frame(maxHeight: .infinity, alignment: .top)
+        .topBarPlacement()
     }
     
     var bottomControls: some View {
@@ -99,6 +99,7 @@ struct EditBait: View {
         }
         
         backAction()
+        dismiss()
     }
     func back(){
         context.rollback()
@@ -110,6 +111,7 @@ struct EditBait: View {
         }
         
         backAction()
+        dismiss()
     }
     func saveOrCreate(){
         //Normalize name
@@ -157,6 +159,7 @@ struct EditBait: View {
         
         //Close view
         backAction()
+        dismiss()
     }
 }
 
@@ -168,16 +171,19 @@ struct EditBait_PreviewWrapper: View {
     
     @Query var baits: [Bait]
     @State private var bait: Bait = Bait("Trailing", .fly, .midwater, "")
+    @Namespace var namespace
     
     var body: some View {
-        EditBait(bait: bait, new: true) {
+        EditBait(bait: bait, new: true,namespace:namespace) {
             print("bck")
         }
     }
 }
 
 #Preview {
-    EditBait_PreviewWrapper()
+    NavigationStack{
+        EditBait_PreviewWrapper()
+    }
         .superContainer()
 }
 #endif
