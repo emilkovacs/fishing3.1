@@ -54,6 +54,8 @@ struct EditBait: View {
         }
         .background(AppColor.tone)
         .ignoresSafeArea(.container)
+        .navigationBarBackButtonHidden()
+        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
         .alert(alertTitle, isPresented: $alertDisplay) {} message: {Text(alertMessage)}
     }
     
@@ -123,17 +125,18 @@ struct EditBait: View {
             return
         }
         
+        
         let nameToCheck = bait.name
-
+        
         let descriptor = FetchDescriptor<Bait>(
             predicate: #Predicate { $0.name == nameToCheck }
         )
-
+        
         do {
             let matchingBaits = try context.fetch(descriptor)
-
+            
             let isDuplicate = matchingBaits.contains { $0.id != bait.id }
-
+            
             if isDuplicate {
                 alertUser("Duplicate Name", "Give your bait a unique name.")
                 return
@@ -141,6 +144,7 @@ struct EditBait: View {
         } catch {
             alertUser("Error", "Failed to check for duplicate name.")
         }
+        
             
         
         //Save and insert if needed

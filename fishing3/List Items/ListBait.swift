@@ -29,43 +29,38 @@ class ListBaitViewModel {
     var listOrder: ListOrders = .recents
     let viewTitle: String
     
-    var showEdit: Bool = false
-    var backAction: () -> Void
-    
-    var editedBait: Bait = Bait("New Bait", .unknown, .unknown, "")
-    var newBait: Bool = true
     
     init(
-        mode: ListModes, context: ModelContext, backAction: @escaping () -> Void
+        mode: ListModes, context: ModelContext
     ) {
         
         self.context = context
         do {
             allBaits = try context.fetch(descriptor)
         } catch {
-            #if DEBUG
+#if DEBUG
             print("Failed to fetch baits.")
-            #endif
+#endif
             allBaits = []
         }
         
         self.mode = mode
         self.viewTitle = mode == .edit ? "All Baits" : "Select Bait"
-        self.backAction = backAction
+        
     }
     
     func updateSort(order: ListOrders) {
         switch order {
         case .forward:
-                orderedBaits = allBaits.sorted {
+            orderedBaits = allBaits.sorted {
                 $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
             }
             
         case .reverse:
- orderedBaits = allBaits.sorted {
+            orderedBaits = allBaits.sorted {
                 $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedDescending
             }
-        
+            
         case .lastAdded:
             orderedBaits = allBaits.sorted {
                 $0.timestamp > $1.timestamp
@@ -73,25 +68,25 @@ class ListBaitViewModel {
             
         case .recents:
             var descriptor = FetchDescriptor<Entry>(sortBy: [SortDescriptor(\.timestamp, order: .reverse)])
-                descriptor.fetchLimit = 50
-
-                if let recentEntries = try? context.fetch(descriptor) {
-                    // Count by bait ID
-                    var baitsFrequency: [PersistentIdentifier: Int] = [:]
-
-                    for entry in recentEntries {
-                        if let id = entry.bait?.persistentModelID {
- baitsFrequency[id, default: 0] += 1
-                        }
+            descriptor.fetchLimit = 100
+            
+            if let recentEntries = try? context.fetch(descriptor) {
+                // Count by bait ID
+                var baitsFrequency: [PersistentIdentifier: Int] = [:]
+                
+                for entry in recentEntries {
+                    if let id = entry.bait?.persistentModelID {
+                        baitsFrequency[id, default: 0] += 1
                     }
-
-                    // Sort allBaits by frequency via persistentModelID
-                    orderedBaits = allBaits.sorted {
-                        (baitsFrequency[$0.persistentModelID] ?? 0) > (baitsFrequency[$1.persistentModelID] ?? 0)
-                    }
-                } else {
-                    orderedBaits = allBaits
                 }
+                
+                // Sort allBaits by frequency via persistentModelID
+                orderedBaits = allBaits.sorted {
+                    (baitsFrequency[$0.persistentModelID] ?? 0) > (baitsFrequency[$1.persistentModelID] ?? 0)
+                }
+            } else {
+                orderedBaits = allBaits
+            }
         }
     }
     
@@ -99,9 +94,9 @@ class ListBaitViewModel {
         do {
             allBaits = try context.fetch(descriptor)
         } catch {
-            #if DEBUG
+#if DEBUG
             print("Failed to fetch baits.")
-            #endif
+#endif
             allBaits = []
         }
     }
@@ -109,28 +104,6 @@ class ListBaitViewModel {
         withAnimation { targetBait.star.toggle() }
         
         try? context.save()
-    }
-    func showAddOverlay(){
-        ///Refresh to get a new Bait..
-        editedBait =  Bait("New Bait", .unknown, .unknown, "")
-        newBait = true
-        
-        if filteredBaits.isEmpty {
-            if !filterString.isEmpty {
- editedBait.name = filterString
-            }
-        }
-        
-        withAnimation{ showEdit = true }
-    }
-    func showEditOverlay(_ targetBait: Bait){
-        editedBait = targetBait
-        newBait = false
-        withAnimation{ showEdit = true }
-    }
-    func hideEditOverlay(){
-        withAnimation{ showEdit = false }
-        refresh()
     }
 }
 
@@ -142,8 +115,8 @@ struct ListBaits: View {
     @AppStorage("BaitsListOrder") var listOrder: ListOrders = .recents
     @Namespace var namespace
     init(
-        mode: ListModes, selectedBait: Binding<Bait?>, context: ModelContext, backAction: @escaping () -> Void) {
-            self.vm = ListBaitViewModel(mode: mode, context: context, backAction: backAction)
+        mode: ListModes, selectedBait: Binding<Bait?>, context: ModelContext) {
+            self.vm = ListBaitViewModel(mode: mode, context: context)
             self._selectedBait = selectedBait
         }
     
@@ -156,12 +129,11 @@ struct ListBaits: View {
                     .padding(.bottom,24)
                     .modifier(ListModifier())
                 
-                    
+                
                 ForEach(vm.filteredBaits){ bait in
                     BaitRow(bait: bait, selectedBait: $selectedBait, mode: vm.mode)
-                        .modifier(ListModifier())
                 }
-                     
+                
                 
                 if vm.allBaits.isEmpty {
                     Text("No Baits, tap + to add first.")
@@ -174,27 +146,28 @@ struct ListBaits: View {
             .listStyle(.plain)
             
             ListTopBlocker()
-            ControlBar(listOrder: $listOrder)
+            EditBaitTopBar(listOrder: $listOrder)
             ListBottomBlocker()
             SearchBar(filterString: $vm.filterString, prompt: "Search baits")
             
-            
-            if vm.showEdit {
- 
-                EditBait(bait: vm.editedBait, new: vm.newBait,namespace: namespace) {
-                    vm.hideEditOverlay()
-                    vm.filterString = ""
-                    vm.refresh()
-                    vm.updateSort(order: .lastAdded)
-                }
-                .transition(.blurReplace)
-            }
+            /*
+             if vm.showEdit {
              
+             EditBait(bait: vm.editedBait, new: vm.newBait,namespace: namespace) {
+             vm.hideEditOverlay()
+             vm.filterString = ""
+             vm.refresh()
+             vm.updateSort(order: .lastAdded)
+             }
+             .transition(.blurReplace)
+             }
+             */
+            
             
         }
         .environment(vm)
-        .background(AppColor.tone.ignoresSafeArea(.all))
         .ignoresSafeArea(.container)
+        .background(AppColor.tone.ignoresSafeArea(.all))
         .onAppear {
             vm.updateSort(order: listOrder)
         }
@@ -203,30 +176,66 @@ struct ListBaits: View {
         }
     }
     
-    struct ControlBar: View {
-        @Environment(ListBaitViewModel.self) var vm
-        @Binding var listOrder: ListOrders
-        var body: some View {
-            HStack{
-                CircleButton("chevron.left") { vm.backAction() }
-                Spacer()
-                CircleSelector(symbol: "line.3.horizontal.decrease", selection: $listOrder)
-                CapsuleButton("plus", "Add") { vm.showAddOverlay() }
+    
+    
+    
+}
+
+
+struct EditBaitTopBar: View {
+    @Environment(ListBaitViewModel.self) var vm
+    @Environment(\.dismiss) var dismiss
+    @Binding var listOrder: ListOrders
+    
+    @State private var newBait = Bait("New Bait", .unknown, .unknown, "")
+    @State private var showEditor: Bool = false
+    @Namespace var namespace
+    
+    var body: some View {
+        HStack{
+            CircleButton("chevron.left") {
+                dismiss()
             }
-            .padding(.top,AppSafeArea.edges.top)
-            .padding(.horizontal)
-            
-            .frame(maxHeight: .infinity, alignment: .top)
+            Spacer()
+            CircleSelector(symbol: "line.3.horizontal.decrease", selection: $listOrder)
+            CapsuleButton("plus", "Add") {
+                newBait = Bait("New Bait", .unknown, .unknown, "")
+                showEditor.toggle()
+            }
+            .matchedTransitionSource(id: "base", in: namespace)
+            .navigationDestination(isPresented: $showEditor) {
+                EditBait(bait: newBait, new: true, namespace: namespace) {
+                    vm.filterString = ""
+                    vm.refresh()
+                    vm.updateSort(order: .lastAdded)
+                }
+            }
         }
+        .topBarPlacement()
     }
- 
-    struct BaitRow: View {
-        @Environment(ListBaitViewModel.self) var vm
-        let bait: Bait
-        @Binding var selectedBait: Bait?
-        let mode: ListModes
-        
-        var body: some View {
+}
+
+struct BaitRow: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(ListBaitViewModel.self) var vm
+    let bait: Bait
+    @Binding var selectedBait: Bait?
+    let mode: ListModes
+    
+    @State private var showEditor: Bool = false
+    @Namespace var namespace
+    
+    var body: some View {
+        Button {
+            if mode == .select {
+                selectedBait = bait
+                AppHaptics.light()
+                dismiss()
+            } else {
+                AppHaptics.light()
+                showEditor.toggle()
+            }
+        } label: {
             VStack(spacing: 0) {
                 HStack{
                     if selectedBait == bait {
@@ -241,6 +250,7 @@ struct ListBaits: View {
                     Text(bait.name)
                         .fontWeight(.medium)
                         .font(.callout)
+                        .matchedTransitionSource(id: "title", in: namespace)
                     Spacer()
                     Image(systemName: bait.type.symbolName)
                         .font(.caption2)
@@ -258,50 +268,48 @@ struct ListBaits: View {
                 Divider()
             }
             .background(AppColor.tone)
-            .onTapGesture {
-                if mode == .select {
-                    selectedBait = bait
-                    vm.backAction()
-                    AppHaptics.light()
-                } else {
-                    vm.showEditOverlay(bait)
-                    AppHaptics.light()
-                }
-            }
-            .contextMenu{
-                if mode == .select {
-                
-                    let title: String = selectedBait == bait ? "Discard" : "Select"
-                    let systemImage: String = selectedBait == bait ? "xmark.circle" : "checkmark.circle"
-                    
-                    Button(title, systemImage: systemImage) {
-                        if selectedBait == bait {
-                            selectedBait = nil
-                        } else {
-                            selectedBait = bait
-                        }
-                    }
-                    
-                }
-                Button("Edit", systemImage: "pencil") { vm.showEditOverlay(bait)}
-                Button(bait.star ? "Unstar" : "Star", systemImage: bait.star ? "star" : "star.fill") {
-                    vm.toggleStar(bait)
-                }
-            }
-            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                Button("Star", systemImage: "star") {
-                    vm.toggleStar(bait)
-                }
-            }
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                Button("Edit", systemImage: "pencil") {
-                    vm.showEditOverlay(bait)
-                }
-            }
-            
+            .matchedTransitionSource(id: "base", in: namespace)
         }
+        .listModifier()
+        .contextMenu{
+            if mode == .select {
+                let title: String = selectedBait == bait ? "Discard" : "Select"
+                let systemImage: String = selectedBait == bait ? "xmark.circle" : "checkmark.circle"
+                
+                Button(title, systemImage: systemImage) {
+                    if selectedBait == bait {
+                        selectedBait = nil
+                    } else {
+                        selectedBait = bait
+                    }
+                }
+                
+            }
+            Button("Edit", systemImage: "pencil") { showEditor.toggle() }
+            Button(bait.star ? "Unstar" : "Star", systemImage: bait.star ? "star" : "star.fill") {
+                vm.toggleStar(bait)
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button("Star", systemImage: "star") {
+                vm.toggleStar(bait)
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button("Edit", systemImage: "pencil") {
+                AppHaptics.light()
+                showEditor.toggle()
+            }
+        }
+        .navigationDestination(isPresented: $showEditor) {
+            EditBait(bait: bait, new: false, namespace: namespace) {
+                vm.filterString = ""
+                vm.refresh()
+                vm.updateSort(order: .lastAdded)
+            }
+        }
+        
     }
-
 }
 
 
@@ -313,13 +321,15 @@ struct ListBaits_PreviewWrapper: View {
     @Environment(\.modelContext) var context
     @State private var bait: Bait?
     var body: some View {
-        ListBaits(mode: .select, selectedBait: $bait, context: context) { }
+        ListBaits(mode: .edit, selectedBait: $bait, context: context)
     }
 }
 
 #Preview {
- ListBaits_PreviewWrapper()
-        .superContainer()
+    NavigationStack{
+        ListBaits_PreviewWrapper()
+    }
+    .superContainer()
 }
 #endif
 

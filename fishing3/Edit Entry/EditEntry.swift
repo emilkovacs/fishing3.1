@@ -182,7 +182,7 @@ struct EditEntry: View {
                     .transition(.blurReplace)
             }
             if vm.showListBaits{
-                ListBaits(mode: .select, selectedBait: $vm.entry.bait, context: context) { vm.hideBaits()}
+                ListBaits(mode: .select, selectedBait: $vm.entry.bait, context: context)
                     .transition(.blurReplace)
             }
                 

@@ -46,9 +46,7 @@ struct ManageDataView: View {
                     ListSpecies(mode: .edit, selectedSpecies: .constant(nil), context: context)
                 }
                 SettingsRowLabelAlt("Baits", "point.forward.to.point.capsulepath.fill", 3) {
-                    ListBaits(mode: .edit, selectedBait: .constant(nil), context: context) {
-                        
-                    }
+                    ListBaits(mode: .edit, selectedBait: .constant(nil), context: context)
                 }
                // SettingsRowLabelAlt("Notes","note.text", 42)
                         

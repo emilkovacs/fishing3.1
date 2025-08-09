@@ -150,8 +150,8 @@ struct ListSpecies: View {
             
         }
         .environment(vm)
-        .background(AppColor.tone.ignoresSafeArea(.all))
         .ignoresSafeArea(.container)
+        .background(AppColor.tone.ignoresSafeArea(.all))
         .onAppear {
             vm.updateSort(order: listOrder)
         }
@@ -284,7 +284,7 @@ struct SpeciesRow: View {
             }
         }
         .navigationDestination(isPresented: $showEditor) {
-            EditSpecies(species: species, new: false, namespace:namespace){
+            EditSpecies(species: species, new: false, namespace: namespace){
                 vm.filterString = ""
                 vm.refresh()
                 vm.updateSort(order: .lastAdded)
