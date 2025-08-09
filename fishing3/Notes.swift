@@ -38,3 +38,4 @@
 
 //at@quickTodo
 /// Charts picker button add a background so it's obvious that it's a button, without is discoverability is hard
+/// Session names summary alphabetical orders instead of random would be nice

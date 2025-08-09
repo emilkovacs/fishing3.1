@@ -35,10 +35,9 @@ struct ViewEntry: View {
         }
         .environment(entry)
         .ignoresSafeArea(.container)
-        .background(
-            AppColor.tone
-                .ignoresSafeArea(.container)
-        )
+        .background(AppColor.tone.ignoresSafeArea(.all))
+        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+        
     }
     
 }
@@ -299,8 +298,7 @@ struct ViewEntryMap: View {
     @State private var isSatelite: Bool = false
     let location: CLLocationCoordinate2D
     let mapHeight: CGFloat = 480
-    var mapStyle: MapStyle { isSatelite ? AppMap.hybridStyle : AppMap.standardStyle
-    }
+    var mapStyle: MapStyle { isSatelite ? AppMap.hybridStyle : AppMap.standardStyle }
 
     var body: some View {
             GeometryReader{ geo in
@@ -466,7 +464,11 @@ struct HeaderDrop<TrailingContenet: View, Content: View>: View {
 
 
 struct AppMap {
+    
+    static let mapHeight: CGFloat = 480
+    
     static let mediumSpan: MKCoordinateSpan = MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
+    static let smallSpan: MKCoordinateSpan = MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)
     
     static let hybridStyle: MapStyle = MapStyle.hybrid(elevation: .realistic, pointsOfInterest: .excludingAll, showsTraffic: false)
     static let standardStyle: MapStyle = MapStyle.standard(elevation: .realistic, emphasis: .automatic, pointsOfInterest: .excludingAll, showsTraffic: false)
@@ -504,13 +506,14 @@ private struct ViewEntry_Preview: View {
     @Query var allEntries: [Entry]
     
     var body: some View {
-        ViewEntry(entry: allEntries[3]) {
-            
+        NavigationStack{
+            ViewEntry(entry: allEntries[3]) {
+                
+            }
+            .onAppear{
+                allEntries[3].notes = "Catch around midwater strong currents above the shore, nice corn trick."
+            }
         }
-        .onAppear{
-            allEntries[3].notes = "Catch around midwater strong currents above the shore, nice corn trick."
-        }
-        
     }
 }
 

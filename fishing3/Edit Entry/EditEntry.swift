@@ -178,7 +178,7 @@ struct EditEntry: View {
             }
             
             if vm.showListSpecies{
-                ListSpecies(mode: .select, selectedSpecies: $vm.entry.species, context: context) { vm.hideSpecies() }
+                ListSpecies(mode: .select, selectedSpecies: $vm.entry.species, context: context)
                     .transition(.blurReplace)
             }
             if vm.showListBaits{

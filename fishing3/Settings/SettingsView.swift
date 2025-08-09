@@ -57,8 +57,7 @@ struct SettingsView: View {
                 .transition(.blurReplace)
             case .species:
                 ListSpecies(
-                    mode: .edit, selectedSpecies: .constant(nil), context: context, backAction: {backHomeAction()}
-                )
+                    mode: .edit, selectedSpecies: .constant(nil), context: context)
                 .transition(.blurReplace)
             case .data:
                 Text("Catches")

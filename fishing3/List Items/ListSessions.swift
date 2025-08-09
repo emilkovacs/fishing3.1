@@ -26,9 +26,7 @@ class ListSessionsViewModel {
     func fetchSessions(){
         
         guard !isLoading else {return}
-        print("Batch request")
         isLoading = true
-        
         descriptor.fetchLimit = fetchLimit
         descriptor.fetchOffset = fetchOffset
         descriptor.propertiesToFetch = [\.id,\.timestamp,\.speciesNames]
@@ -43,8 +41,6 @@ class ListSessionsViewModel {
                 print("Failed to fetch")
                 #endif
             }
-            
-            
             isLoading = false
         }
     }
@@ -54,8 +50,7 @@ class ListSessionsViewModel {
 struct ListSessions: View {
     
     /// Progressively fetches Sessions with only metada, not the whole entries.
-    
-    @Namespace var listNS
+    @Environment(\.dismiss) var dismiss
     @Bindable var vm: ListSessionsViewModel
     
     init(context: ModelContext) {
@@ -73,24 +68,20 @@ struct ListSessions: View {
                     .padding(.bottom)
                 
                 ForEach(vm.loadedSessions){ session in
-                        //SessionRowDesignA()
-                    SessionRow(ns:listNS, session: session)
+                    SessionRow(session: session)
                 }
-                Spacer().onAppear {
-                    vm.fetchSessions()
-                }
-                .modifier(ListModifier())
+                
+                Spacer().onAppear{vm.fetchSessions()}.modifier(ListModifier())
             }
             .listStyle(.plain)
-            .onAppear {
-                vm.fetchSessions()
-            }
+            
+            .onAppear {vm.fetchSessions()}
             
             //Top Control Area
             ListTopBlocker()
             HStack{
                 CircleButton("chevron.left") {
-                    
+                    dismiss()
                 }
                 Spacer()
             }
@@ -107,57 +98,103 @@ struct ListSessions: View {
         
     }
 }
-struct SessionRow: View {
-    let ns: Namespace.ID
-    let session: Session
-    
-    @Namespace var rowNS
-    @Namespace var textNS
-    var body: some View {
-        NavigationLink {
-            Text("Aaa")
-        } label: {
-            if #available(iOS 18.0, *) {
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack{
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(session.timestamp.formatted(date: .abbreviated, time: .omitted))
-                                .font(.callout2)
-                                .foregroundStyle(AppColor.half)
 
-                                
-                            Text(session.speciesSummary)
-                                .font(.callout)
-                                .matchedTransitionSource(id: session.id.uuidString, in: rowNS)
-                                
-                        }
-                        Spacer()
-                        
-                        //Counter
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(AppColor.half.opacity(0.2))
-                            .frame(width: 42,height: 42)
-                            .overlay(alignment: .center) {
-                                Text("\(session.speciesNames.count)")
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                            }
-                        
+struct SessionRow: View {
+    @Environment(\.modelContext) var context
+    let session: Session
+    @Namespace var namespace
+    
+    @State private var bool: Bool = false
+    var body: some View {
+        Button {
+                bool.toggle()
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack{
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(session.timestamp.formatted(date: .abbreviated, time: .omitted))
+                            .font(.callout2)
+                            .foregroundStyle(AppColor.half)
+                            .matchedTransitionSource(id: session.id.uuidString, in: namespace)
+
+                        Text(session.speciesSummary)
+                            .font(.callout)
+                            
                     }
-                    .padding(.vertical)
-                    Divider()
+                    Spacer()
+                    //Counter
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(AppColor.half.opacity(0.2))
+                        .frame(width: 42,height: 42)
+                        .overlay(alignment: .center) {
+                            Text("\(session.speciesNames.count)")
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                        }
+                    
                 }
-                
-            } else {
-                // Fallback on earlier versions
+                .padding(.vertical)
+                Divider()
             }
         }
         .modifier(ListModifier())
+        .navigationDestination(isPresented: $bool) {
+            SessionView(session: session, ns: namespace, context: context)
+                .navigationTransition(.zoom(sourceID: session.id.uuidString, in: namespace))
+                .navigationBarBackButtonHidden()
+        }
         
-
+       
+        
+        
     }
 }
 
+//MARK: OTHER SHIT
+
+
+
+struct EntryRowNow: View {
+    
+    @Bindable var entry: Entry
+    @State private var bool: Bool = false
+    @Namespace var ns
+    var body: some View {
+        Button {
+            bool.toggle()
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack{
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("14:56")
+                            .font(.callout2)
+                            .foregroundStyle(AppColor.half)
+                        Text("\(entry.species?.name ?? "Err"), \(entry.bait?.name ?? "")")
+                            .lineLimit(1)
+                            .padding(.vertical,6)
+                        Text("20kg, 16cm, from Shore")
+                            .font(.callout2)
+                            .foregroundStyle(AppColor.half)
+                    }
+                    .padding(.vertical)
+                    Spacer()
+                    //Image later
+                }
+                Divider()
+            }
+            
+        }
+        .modifier(ListModifier())
+        .navigationDestination(isPresented: $bool) {
+            ViewEntry(entry: entry) {
+                bool.toggle()
+            }
+            .navigationTransition(.zoom(sourceID: "src", in: ns))
+            .navigationBarBackButtonHidden()
+        }
+
+    }
+}
 
 
 #if DEBUG
@@ -165,16 +202,19 @@ struct SessionRow: View {
 struct ListSessions_PreviewWrapper: View {
     @Environment(\.modelContext) var context
     var body: some View {
-        ListSessions(context: context)
+        ZStack{
+            NavigationStack{
+                ListSessions(context: context)
+            }
+            .background(Color.red)
+        }
+        .background(Color.red)
     }
 }
 
 #Preview {
-    NavigationStack{
         ListSessions_PreviewWrapper()
             .superContainer()
-    }
-    .background(AppColor.tone)
 }
 
 

@@ -9,7 +9,6 @@ import SwiftUI
 import SwiftData
 
 
-
 @Observable
 class ListSpeciesViewModel {
     
@@ -30,16 +29,9 @@ class ListSpeciesViewModel {
     let mode: ListModes
     var listOrder: ListOrders = .recents
     let viewTitle: String
+        
     
-    var showEdit: Bool = false
-    var backAction: () -> Void
-    
-    var editedSpecie: Species = Species("New Species", .unknown, .unknown)
-    var newSpecies: Bool = true
-    
-    init(
-        mode: ListModes, context: ModelContext, backAction: @escaping () -> Void
-    ) {
+    init(mode: ListModes, context: ModelContext,) {
         
         self.context = context
         do {
@@ -53,7 +45,6 @@ class ListSpeciesViewModel {
         
         self.mode = mode
         self.viewTitle = mode == .edit ? "All Species" : "Select Species"
-        self.backAction = backAction
         
         self.orderedSpecies = allSpecies
     }
@@ -111,30 +102,7 @@ class ListSpeciesViewModel {
     }
     func toggleStar(_ targetSpecies: Species){
         withAnimation { targetSpecies.star.toggle() }
-        
         try? context.save()
-    }
-    func showAddOverlay(){
-        ///Refresh to get a new Species..
-        editedSpecie =  Species("New Species", .unknown, .unknown)
-        newSpecies = true
-        
-        if filteredSpecies.isEmpty {
-            if !filterString.isEmpty {
-                editedSpecie.name = filterString
-            }
-        }
-        
-        withAnimation{ showEdit = true }
-    }
-    func showEditOverlay(_ targetSpecies: Species){
-        editedSpecie = targetSpecies
-        newSpecies = false
-        withAnimation{ showEdit = true }
-    }
-    func hideEditOverlay(){
-        withAnimation{ showEdit = false }
-        refresh()
     }
 }
 
@@ -143,10 +111,12 @@ struct ListSpecies: View {
     @Bindable var vm: ListSpeciesViewModel
     @Binding var selectedSpecies: Species?
     @AppStorage("SpeciesListOrder12") var listOrder: ListOrders = .recents
+    @Namespace var namespace
     
     init(
-        mode: ListModes, selectedSpecies: Binding<Species?>, context: ModelContext, backAction: @escaping () -> Void) {
-            self.vm = ListSpeciesViewModel(mode: mode, context: context, backAction: backAction)
+        mode: ListModes, selectedSpecies: Binding<Species?>, context: ModelContext
+    ) {
+            self.vm = ListSpeciesViewModel(mode: mode, context: context)
             self._selectedSpecies = selectedSpecies
         }
     
@@ -161,7 +131,6 @@ struct ListSpecies: View {
                 
                 ForEach(vm.filteredSpecies){ specie in
                     SpeciesRow(species: specie, selectedSpecies: $selectedSpecies, mode: vm.mode)
-                        .modifier(ListModifier())
                 }
                 
                 if vm.allSpecies.isEmpty {
@@ -175,19 +144,9 @@ struct ListSpecies: View {
             .listStyle(.plain)
             
             ListTopBlocker()
-            ControlBar(listOrder: $listOrder)
+            ListSpeciesTopBar(listOrder: $listOrder)
             ListBottomBlocker()
             SearchBar(filterString: $vm.filterString, prompt: "Search species")
-            
-            if vm.showEdit {
-                EditSpecies(species: vm.editedSpecie, new: vm.newSpecies) {
-                    vm.hideEditOverlay()
-                    vm.filterString = ""
-                    vm.refresh()
-                    vm.updateSort(order: .lastAdded)
-                }
-                .transition(.blurReplace)
-            }
             
         }
         .environment(vm)
@@ -201,29 +160,62 @@ struct ListSpecies: View {
         }
     }
     
-    struct ControlBar: View {
-        @Environment(ListSpeciesViewModel.self) var vm
-        @Binding var listOrder: ListOrders
-        var body: some View {
-            HStack{
-                CircleButton("chevron.left") { vm.backAction() }
-                Spacer()
-                CircleSelector(symbol: "line.3.horizontal.decrease", selection: $listOrder)
-                CapsuleButton("plus", "Add") { vm.showAddOverlay() }
+}
+
+struct ListSpeciesTopBar: View {
+    
+    @Environment(ListSpeciesViewModel.self) var vm
+    @Environment(\.dismiss) var dismiss
+    @Binding var listOrder: ListOrders
+    
+    @State private var newSpecies = Species("New Species", .unknown, .unknown)
+    @State private var showEditor: Bool = false
+    @Namespace var namespace
+    
+    var body: some View {
+        HStack{
+            CircleButton("chevron.left") { dismiss() }
+            Spacer()
+            CircleSelector(symbol: "line.3.horizontal.decrease", selection: $listOrder)
+            CapsuleButton("plus", "Add") {
+                newSpecies = Species("New Species", .unknown, .unknown)
+                showEditor.toggle()
             }
-            .padding(.top,AppSafeArea.edges.top)
-            .padding(.horizontal)
-            
-            .frame(maxHeight: .infinity, alignment: .top)
+            .matchedTransitionSource(id: "base", in: namespace)
+            .navigationDestination(isPresented: $showEditor) {
+                EditSpecies(species: newSpecies, new: true, namespace: namespace) {
+                    vm.filterString = ""
+                    vm.updateSort(order: .lastAdded)
+                    vm.refresh()
+                    vm.updateSort(order: .lastAdded)
+                }
+            }
         }
+        .topBarPlacement()
     }
-    struct SpeciesRow: View {
-        @Environment(ListSpeciesViewModel.self) var vm
-        let species: Species
-        @Binding var selectedSpecies: Species?
-        let mode: ListModes
-        
-        var body: some View {
+}
+
+struct SpeciesRow: View {
+    @Environment(\.dismiss) var dismiss
+    @Environment(ListSpeciesViewModel.self) var vm
+    let species: Species
+    @Binding var selectedSpecies: Species?
+    let mode: ListModes
+    
+    @State private var showEditor: Bool = false
+    @Namespace var namespace
+    
+    var body: some View {
+        Button {
+            if mode == .select {
+                AppHaptics.light()
+                selectedSpecies = species
+                dismiss()
+            } else {
+                AppHaptics.light()
+                showEditor.toggle()
+            }
+        } label: {
             VStack(spacing: 0) {
                 HStack{
                     if selectedSpecies == species {
@@ -238,6 +230,7 @@ struct ListSpecies: View {
                     Text(species.name)
                         .fontWeight(.medium)
                         .font(.callout)
+                        .matchedTransitionSource(id: "name", in: namespace)
                     Spacer()
                     Image(systemName: species.water.symbolName)
                         .font(.caption2)
@@ -255,52 +248,51 @@ struct ListSpecies: View {
                 Divider()
             }
             .background(AppColor.tone)
-            .onTapGesture {
-                if mode == .select {
-                    selectedSpecies = species
-                    vm.backAction()
-                    AppHaptics.light()
-                } else {
-                    vm.showEditOverlay(species)
-                    AppHaptics.light()
-                }
-            }
-            .contextMenu{
-                if mode == .select {
-                
-                    let title: String = selectedSpecies == species ? "Discard" : "Select"
-                    let systemImage: String = selectedSpecies == species ? "xmark.circle" : "checkmark.circle"
-                    
-                    Button(title, systemImage: systemImage) {
-                        if selectedSpecies == species {
-                            selectedSpecies = nil
-                        } else {
-                            selectedSpecies = species
-                        }
-                    }
-                    
-                }
-                Button("Edit", systemImage: "pencil") { vm.showEditOverlay(species)}
-                Button(species.star ? "Unstar" : "Star", systemImage: species.star ? "star" : "star.fill") {
-                    vm.toggleStar(species)
-                }
-            }
-            .swipeActions(edge: .leading, allowsFullSwipe: true) {
-                Button("Star", systemImage: "star") {
-                    vm.toggleStar(species)
-                }
-            }
-            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                Button("Edit", systemImage: "pencil") {
-                    vm.showEditOverlay(species)
-                }
-            }
+            .matchedTransitionSource(id: "base", in: namespace)
             
         }
+        .listModifier()
+        .contextMenu{
+            if mode == .select {
+            
+                let title: String = selectedSpecies == species ? "Discard" : "Select"
+                let systemImage: String = selectedSpecies == species ? "xmark.circle" : "checkmark.circle"
+                
+                Button(title, systemImage: systemImage) {
+                    if selectedSpecies == species {
+                        selectedSpecies = nil
+                    } else {
+                        selectedSpecies = species
+                    }
+                }
+                
+            }
+            Button("Edit", systemImage: "pencil") { showEditor.toggle()}
+            Button(species.star ? "Unstar" : "Star", systemImage: species.star ? "star" : "star.fill") {
+                vm.toggleStar(species)
+            }
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button("Star", systemImage: "star") {
+                vm.toggleStar(species)
+            }
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button("Edit", systemImage: "pencil") {
+                AppHaptics.light()
+                showEditor.toggle()
+            }
+        }
+        .navigationDestination(isPresented: $showEditor) {
+            EditSpecies(species: species, new: false, namespace:namespace){
+                vm.filterString = ""
+                vm.refresh()
+                vm.updateSort(order: .lastAdded)
+            }
+        }
+        
     }
-
 }
-
 
 
 
@@ -310,12 +302,14 @@ struct ListSpecies_PreviewWrapper: View {
     @Environment(\.modelContext) var context
     @State private var species: Species?
     var body: some View {
-        ListSpecies(mode: .select, selectedSpecies: $species, context: context) { }
+        ListSpecies(mode: .edit, selectedSpecies: .constant(nil), context: context)
     }
 }
 
 #Preview {
-    ListSpecies_PreviewWrapper()
-        .superContainer()
+    NavigationStack{
+        ListSpecies_PreviewWrapper()
+    }
+    .superContainer()
 }
 #endif

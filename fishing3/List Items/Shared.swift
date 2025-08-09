@@ -17,6 +17,17 @@ struct ListModifier: ViewModifier {
         
     }
 }
+
+extension View {
+    func listModifier() -> some View {
+        self
+            .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+            .listRowSpacing(0)
+            .listRowBackground(AppColor.tone)
+            .listRowSeparator(.hidden)
+    }
+}
+
 struct ListTopSpacer: View {
     var body: some View {
         Spacer().frame(

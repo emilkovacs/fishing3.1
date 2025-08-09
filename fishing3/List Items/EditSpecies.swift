@@ -12,14 +12,14 @@ import SwiftData
 struct EditSpecies: View {
     
     @Environment(\.modelContext) var context
+    @Environment(\.dismiss) var dismiss
     
     @Bindable var species: Species
     var new: Bool
+    var namespace: Namespace.ID
     var backAction: () -> Void
     
-    var title: String {
-        new ? "New Species" : "Edit Species"
-    }
+    var title: String { new ? "New Species" : "Edit Species"}
     
     @State private var alertDisplay: Bool = false
     @State private var alertTitle: String = ""
@@ -36,20 +36,27 @@ struct EditSpecies: View {
                         .padding(.bottom,32)
                     
                     LargeStringInput("Name", "Unique Name", $species.name)
+                        .navigationTransition(.zoom(sourceID: "name", in: namespace))
                     LargeSelector("Water", $species.water)
                     LargeSelector("Behaviour", $species.behaviour)
                     bottomControls
                 }
+                
                 .padding(.horizontal)
                 .padding(.top,64+16)
                 .padding(.top,AppSafeArea.edges.top)
+                .navigationTransition(.zoom(sourceID: "base", in: namespace))
             }
             
             topControls
             
         }
-        .background(AppColor.tone)
         .ignoresSafeArea(.container)
+        .background(AppColor.tone.ignoresSafeArea(.all))
+        
+        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+        .navigationBarBackButtonHidden()
+        
         .alert(alertTitle, isPresented: $alertDisplay) {} message: {Text(alertMessage)}
     }
     
@@ -99,6 +106,7 @@ struct EditSpecies: View {
         }
         
         backAction()
+        dismiss()
     }
     func back(){
         context.rollback()
@@ -108,8 +116,8 @@ struct EditSpecies: View {
         } catch {
             alertUser("Error", "Failed to save species.")
         }
-        
         backAction()
+        dismiss()
     }
     func saveOrCreate(){
         //Normalize name
@@ -157,6 +165,7 @@ struct EditSpecies: View {
         
         //Close view
         backAction()
+        dismiss()
     }
 }
 
@@ -167,16 +176,18 @@ struct EditSpecies: View {
 struct EditSpecies_PreviewWrapper: View {
     
     @Query var species: [Species]
-    
+    @Namespace var ns
     var body: some View {
-        EditSpecies(species: species[3], new: false) {
-            print("bck")
+        EditSpecies(species: species[3], new: false, namespace: ns) {
+            
         }
     }
 }
 
 #Preview {
-    EditSpecies_PreviewWrapper()
-        .superContainer()
+    NavigationStack{
+        EditSpecies_PreviewWrapper()
+    }
+    .superContainer()
 }
 #endif

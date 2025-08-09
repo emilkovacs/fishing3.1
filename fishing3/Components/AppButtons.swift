@@ -163,6 +163,7 @@ struct CompositeLabel: View {
         HStack(alignment: .center, spacing: AppSize.buttonSpacing) {
             if let setSymbol = symbol {
                 Image(systemName: setSymbol)
+                    .imageScale(.medium)
                     .foregroundStyle(AppColor.button)
                     .fontWeight(.semibold)
                     .font(.callout2)
@@ -190,6 +191,7 @@ struct CapsuleLabel: View {
     var body: some View {
         HStack(alignment: .center, spacing: AppSize.buttonSpacing) {
             Image(systemName: symbol)
+                .imageScale(.medium)
                 .foregroundStyle(AppColor.button)
                 .fontWeight(.semibold)
                 .font(.callout2)
@@ -229,6 +231,7 @@ struct CircleLabel: View {
     let symbol: String
     var body: some View {
         Image(systemName: symbol)
+            .imageScale(.medium)
             .foregroundStyle(AppColor.button)
             .fontWeight(.semibold)
             .font(.callout2)

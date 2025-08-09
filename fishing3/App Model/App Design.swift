@@ -24,6 +24,7 @@ struct AppSize {
     static let radius: CGFloat = 18.0
     static let spacing: CGFloat = 8.0
     
+    static let tinySpace: CGFloat = 8.0
     static let smallSpace: CGFloat = 12.0
     static let regularSpace: CGFloat = 16.0
     
@@ -98,6 +99,22 @@ struct AppFormatter{
     }
 }
 
+extension View {
+    func topBarPlacement() -> some View {
+        self
+            .padding(.horizontal)
+            .padding(.top,AppSafeArea.edges.top)
+            .frame(maxHeight: .infinity,alignment: .top)
+            .ignoresSafeArea(.all)
+    }
+    func bottomBarPlacement() -> some View {
+        self
+            .padding(.horizontal)
+            .padding(.bottom,AppSafeArea.edges.bottom)
+            .frame(maxHeight: .infinity,alignment: .bottom)
+            .ignoresSafeArea(.container)
+    }
+}
 
 class AppSafeArea {
     static let edges = AppSafeArea()
